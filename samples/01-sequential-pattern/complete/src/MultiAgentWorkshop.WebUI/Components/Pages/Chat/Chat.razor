@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using System.ComponentModel
+@using MultiAgentWorkshop.Models.Configuration
 @inject IChatClient ChatClient
+@inject IEnumerable<AgentSettings> Agents
 @inject ILogger<Chat> Logger
 @implements IDisposable
 
@@ -10,7 +12,7 @@
 
 <ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage">
     <NoMessagesContent>
-        <div>I'm your friendly assistant. To get started, check all the to-do items.</div>
+        <div>I'm your friendly assistant. What can I do for you today?</div>
     </NoMessagesContent>
 </ChatMessageList>
 
@@ -20,10 +22,13 @@
 
 @code {
     private const string SystemPrompt = """
-        You're an expert managing to-do list items for a user.
-        You keep track of the user's to-do list, and can add, remove, or complete items as needed.
-        You can also search for information to help you manage the to-do list effectively.
+        You're an expert writing a technical blog post.
+        The user will provide you with a topic, and you'll respond with a blog post on that topic.
+        Your responses should be in markdown format, and include a title, an introduction, several sections with headings, and a conclusion.
+        The blog post should be no more than 500 words, and should be engaging and informative.
         """;
+
+    private IEnumerable<string> agentNames = ["research-agent", "outliner-agent", "writer-agent", "editor-agent", "seo-agent"];
 
     private int statefulMessageCount;
     private readonly ChatOptions chatOptions = new();
@@ -34,6 +39,7 @@
 
     protected override void OnInitialized()
     {
+        agentNames = Agents.Select(a => a.Name!);
         statefulMessageCount = 0;
         messages.Add(new(ChatRole.System, SystemPrompt));
         chatOptions.Tools = [];
@@ -51,10 +57,28 @@
         var responseText = new TextContent("");
         currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
         currentResponseCancellation = new();
+        string? currentMessageId = null;
+        int agentIndex = 0;
+        currentResponseMessage.AuthorName = agentNames.ElementAtOrDefault(agentIndex);
         StateHasChanged();
         await foreach (var update in ChatClient.GetStreamingResponseAsync(messages.Skip(statefulMessageCount), chatOptions, currentResponseCancellation.Token))
         {
             messages.AddMessages(update, filter: c => c is not TextContent);
+
+            // When the MessageId changes, a new agent in the pipeline has started responding
+            if (update.MessageId is not null && update.MessageId != currentMessageId)
+            {
+                if (currentMessageId is not null && responseText.Text?.Length > 0)
+                {
+                    messages.Add(currentResponseMessage!);
+                    responseText = new TextContent("");
+                    currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+                    agentIndex++;
+                    currentResponseMessage.AuthorName = agentNames.ElementAtOrDefault(agentIndex);
+                }
+                currentMessageId = update.MessageId;
+            }
+
             responseText.Text += update.Text;
             chatOptions.ConversationId = update.ConversationId;
             ChatMessageItem.NotifyChanged(currentResponseMessage);

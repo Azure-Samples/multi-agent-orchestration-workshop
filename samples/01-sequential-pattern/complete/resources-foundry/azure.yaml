@@ -7,16 +7,6 @@ metadata:
   author: Justin Yoo
   description: Provision Microsoft Foundry Agent and MCP server using Azure Developer CLI
 
-services:
-  mcp-todo:
-    project: ../src/MultiAgentWorkshop.McpTodo
-    host: containerapp
-    language: dotnet
-    docker:
-      path: ./Dockerfile
-      context: .
-      remoteBuild: true
-
 hooks:
   postdeploy:
     posix:

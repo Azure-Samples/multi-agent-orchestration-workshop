@@ -22,7 +22,7 @@ else if (Message.Role == ChatRole.Assistant)
                         </svg>
                     </div>
                 </div>
-                <div class="assistant-message-header">Assistant</div>
+                <div class="assistant-message-header">@(Message.AuthorName ?? "Assistant")</div>
                 <div class="assistant-message-text">
                     <assistant-message markdown="@text"></assistant-message>
 

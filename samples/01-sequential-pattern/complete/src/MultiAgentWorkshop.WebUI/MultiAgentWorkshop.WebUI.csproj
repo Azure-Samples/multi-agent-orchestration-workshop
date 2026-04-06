@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 
-    <UserSecretsId>a9901e31-0f2d-4b0d-a630-555cb5adaffe</UserSecretsId>
+    <UserSecretsId>eb5e880d-860a-4954-887d-489dc9b515d6</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MultiAgentWorkshop.Models\MultiAgentWorkshop.Models.csproj" />
     <ProjectReference Include="..\MultiAgentWorkshop.ServiceDefaults\MultiAgentWorkshop.ServiceDefaults.csproj" />
   </ItemGroup>
 

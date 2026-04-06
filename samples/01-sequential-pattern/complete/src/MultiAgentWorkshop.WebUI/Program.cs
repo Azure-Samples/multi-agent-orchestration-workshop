@@ -3,12 +3,19 @@ using MultiAgentWorkshop.WebUI.Components;
 using Microsoft.Agents.AI.AGUI;
 using Microsoft.Extensions.AI;
 
+using MultiAgentWorkshop.Models.Configuration;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var config = builder.Configuration;
+var agents = config.GetSection("Agents").Get<IEnumerable<AgentSettings>>() ?? throw new InvalidOperationException("Agents settings are not configured");
 
 builder.AddServiceDefaults();
 
 builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+builder.Services.AddSingleton(agents);
 
 builder.Services.AddHttpClient("agent", client =>
 {

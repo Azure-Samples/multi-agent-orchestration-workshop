@@ -4,30 +4,23 @@ using Azure.Identity;
 
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.DevUI;
+using Microsoft.Agents.AI.Hosting;
 using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
+
+using MultiAgentWorkshop.Models.Configuration;
 
 using OpenAI.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
-
-var endpoint = config["Foundry:Project:Endpoint"] ?? throw new InvalidOperationException("Missing Foundry Endpoint");
-var model = config["Foundry:Project:Model"] ?? throw new InvalidOperationException("Missing Foundry Model");
-var agentName = config["Foundry:Project:Agent:Name"] ?? "todo-agent";
-var agentVersion = config["Foundry:Project:Agent:Version"] ?? "1";
-
-if (builder.Environment.IsDevelopment() == true)
-{
-    var logger = new LoggerFactory().CreateLogger("MultiAgentWorkshop.Agent.Program");
-    logger.LogInformation("Using configuration: {config}", config.GetDebugView());
-    logger.LogInformation("Parsed connection string values: Endpoint={endpoint}", endpoint);
-    logger.LogInformation("Parsed connection string values: Model={model}", model);
-    logger.LogInformation("Parsed connection string values: AgentName={agentName}", agentName);
-    logger.LogInformation("Parsed connection string values: AgentVersion={agentVersion}", agentVersion);
-}
+var foundry = config.GetSection("Foundry").Get<FoundrySettings>() ?? throw new InvalidOperationException("Foundry settings are not configured");
+var project = foundry.Project ?? throw new InvalidOperationException("Foundry project settings are not configured");
+var endpoint = project.Endpoint ?? throw new InvalidOperationException("Missing Foundry Endpoint");
+var model = project.Model ?? throw new InvalidOperationException("Missing Foundry Model");
+var agents = project.Agents ?? throw new InvalidOperationException("Missing Foundry Agents configuration");
 
 builder.AddServiceDefaults();
 
@@ -38,14 +31,24 @@ builder.AddServiceDefaults();
 // Workaround: use clientFactory to wrap the inner client and intercept GetService.
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
 var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
-var agentReference = new AgentReference(agentName, agentVersion);
 
-var agent = projectClient.AsAIAgent(
-    agentReference: agentReference,
-    clientFactory: inner => new AgentRecordShimChatClient(inner)
-);
+foreach (var agentSettings in agents)
+{
+    var agentReference = new AgentReference(agentSettings.Name, agentSettings.Version);
 
-builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent);
+    var agent = projectClient.AsAIAgent(
+        agentReference: agentReference,
+        clientFactory: inner => new AgentRecordShimChatClient(inner)
+    );
+
+    builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
+}
+
+builder.AddWorkflow("publisher", (sp, key) => AgentWorkflowBuilder.BuildSequential(
+    workflowName: key,
+    agents: [.. agents.Select(a => sp.GetRequiredKeyedService<AIAgent>(a.Name))]
+)).AddAsAIAgent("publisher");
+
 
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
@@ -61,7 +64,7 @@ app.MapOpenAIConversations();
 
 app.MapAGUI(
     pattern: "ag-ui",
-    aiAgent: app.Services.GetRequiredKeyedService<AIAgent>(agentName)
+    aiAgent: app.Services.GetRequiredKeyedService<AIAgent>("publisher")
 );
 
 if (builder.Environment.IsDevelopment() == true)
