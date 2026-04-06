@@ -38,14 +38,14 @@ In this workshop, we're building all multi-agent orchestration patterns except t
 | Session               | Document                                                         | Code Sample                                                               |
 |-----------------------|------------------------------------------------------------------|---------------------------------------------------------------------------|
 | 00 Setup              | [docs/00-setup.md](./docs/00-setup.md)                           |                                                                           |
-| 01 Sequential Pattern | [docs/01-sequential-pattern.md](./docs/01-sequential-pattern.md) | [samples/01-sequential-pattern](./samples/01-sequential-pattern/complete) |
-| 02 Concurrent Pattern | [docs/02-concurrent-pattern.md](./docs/02-concurrent-pattern.md) | [samples/02-concurrent-pattern](./samples/02-concurrent-pattern/complete) |
-| 03 Handoff Pattern    | [docs/03-handoff-pattern.md](./docs/03-handoff-pattern.md)       | [samples/03-handoff-pattern](./samples/03-handoff-pattern/complete)       |
-| 04 Group Chat Pattern | [docs/04-group-chat-pattern.md](./docs/04-group-chat-pattern.md) | [samples/04-group-chat-pattern](./samples/04-group-chat-pattern/complete) |
+| 01 Sequential Pattern | [docs/01-sequential-pattern.md](./docs/01-sequential-pattern.md) | [samples/01-sequential-pattern](./samples/01-sequential-pattern) |
+| 02 Concurrent Pattern | [docs/02-concurrent-pattern.md](./docs/02-concurrent-pattern.md) | [samples/02-concurrent-pattern](./samples/02-concurrent-pattern) |
+| 03 Handoff Pattern    | [docs/03-handoff-pattern.md](./docs/03-handoff-pattern.md)       | [samples/03-handoff-pattern](./samples/03-handoff-pattern)       |
+| 04 Group Chat Pattern | [docs/04-group-chat-pattern.md](./docs/04-group-chat-pattern.md) | [samples/04-group-chat-pattern](./samples/04-group-chat-pattern) |
 
 ## Use your local language!
 
-This workshop materials are provided with your local languages.
+This workshop materials support your local languages.
 
 [English](./README.md) | [中文(简体)](./localization/zh-cn/README.md) | [Español](./localization/es/README.md) | [日本語](./localization/ja/README.md) | [한국어](./localization/ko/README.md)
 
