@@ -58,6 +58,7 @@
   "remoteUser": "vscode",
 
   "onCreateCommand": "/bin/bash ./.devcontainer/on-create.sh > ~/on-create.log",
+  "postStartCommand": "dotnet dev-certs https --trust",
 
   "hostRequirements": {
     "cpus": 4,

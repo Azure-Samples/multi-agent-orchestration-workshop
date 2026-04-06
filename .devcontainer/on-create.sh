@@ -11,8 +11,8 @@ git config --global pull.rebase false
 git config --global core.autocrlf input
 
 ## Install .NET dev certs
-echo Install .NET dev certs
-dotnet dev-certs https --trust
+# echo Install .NET dev certs
+# dotnet dev-certs https --trust
 
 ## Add Aspire CLI
 echo Install Aspire CLI
