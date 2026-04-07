@@ -1,8 +1,6 @@
 ﻿@page "/"
 @using System.ComponentModel
-@using MultiAgentWorkshop.Models.Configuration
 @inject IChatClient ChatClient
-@inject IEnumerable<AgentSettings> Agents
 @inject ILogger<Chat> Logger
 @implements IDisposable
 
@@ -22,13 +20,15 @@
 
 @code {
     private const string SystemPrompt = """
-        You're an expert writing a technical blog post.
-        The user will provide you with a topic, and you'll respond with a blog post on that topic.
+        You're an expert analyst working at a venture capital firm.
+        The user will provide you with a business idea, and you'll respond with a full analysis on its market potential, technology feasibility, financial model, and risk assessment.
         Your responses should be in markdown format, and include a title, an introduction, several sections with headings, and a conclusion.
-        The blog post should be no more than 500 words, and should be engaging and informative.
+        The analysis should be no more than 500 words, and should be engaging and informative.
         """;
 
-    private IEnumerable<string> agentNames = [];
+    // Number of concurrent agents in the pipeline (before the aggregator)
+    private const string ConcurrentLabel = "concurrent-analysis";
+    private const string AggregatorLabel = "aggregator-agent";
 
     private int statefulMessageCount;
     private readonly ChatOptions chatOptions = new();
@@ -39,7 +39,6 @@
 
     protected override void OnInitialized()
     {
-        agentNames = Agents.Select(a => a.Name!);
         statefulMessageCount = 0;
         messages.Add(new(ChatRole.System, SystemPrompt));
         chatOptions.Tools = [];
@@ -56,27 +55,24 @@
         // Stream and display a new response from the IChatClient
         var responseText = new TextContent("");
         currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+        currentResponseMessage.AuthorName = ConcurrentLabel;
         currentResponseCancellation = new();
-        string? currentMessageId = null;
-        int agentIndex = 0;
-        currentResponseMessage.AuthorName = agentNames.ElementAtOrDefault(agentIndex);
+        var allMessageIds = new HashSet<string>();
         StateHasChanged();
         await foreach (var update in ChatClient.GetStreamingResponseAsync(messages.Skip(statefulMessageCount), chatOptions, currentResponseCancellation.Token))
         {
             messages.AddMessages(update, filter: c => c is not TextContent);
 
-            // When the MessageId changes, a new agent in the pipeline has started responding
-            if (update.MessageId is not null && update.MessageId != currentMessageId)
+            if (update.MessageId is not null && allMessageIds.Add(update.MessageId))
             {
-                if (currentMessageId is not null && responseText.Text?.Length > 0)
+                // A new MessageId appeared. If we already have content, save the current message.
+                if (responseText.Text?.Length > 0)
                 {
                     messages.Add(currentResponseMessage!);
                     responseText = new TextContent("");
                     currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
-                    agentIndex++;
-                    currentResponseMessage.AuthorName = agentNames.ElementAtOrDefault(agentIndex);
+                    currentResponseMessage.AuthorName = ConcurrentLabel;
                 }
-                currentMessageId = update.MessageId;
             }
 
             responseText.Text += update.Text;
@@ -84,6 +80,9 @@
             ChatMessageItem.NotifyChanged(currentResponseMessage);
             StateHasChanged();
         }
+
+        // The final streamed message is from the aggregator agent
+        currentResponseMessage!.AuthorName = AggregatorLabel;
 
         // Store the final response in the conversation, and begin getting suggestions
         messages.Add(currentResponseMessage!);
