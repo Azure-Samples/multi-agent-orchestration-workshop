@@ -2,7 +2,7 @@ $REPOSITORY_ROOT = git rev-parse --show-toplevel
 
 $secrets = @{}
 dotnet user-secrets `
-    --project "$REPOSITORY_ROOT/samples/01-sequential-pattern/complete/src/MultiAgentWorkshop.AppHost/MultiAgentWorkshop.AppHost.csproj" list | `
+    --project "$REPOSITORY_ROOT/samples/02-concurrent-pattern/complete/src/MultiAgentWorkshop.AppHost/MultiAgentWorkshop.AppHost.csproj" list | `
     ForEach-Object {
         $parts = $_ -split ' = ', 2
         $secrets[$parts[0]] = $parts[1]

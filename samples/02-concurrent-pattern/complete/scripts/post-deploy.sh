@@ -2,7 +2,7 @@
 
 REPOSITORY_ROOT=$(git rev-parse --show-toplevel)
 
-secrets="$REPOSITORY_ROOT/samples/01-sequential-pattern/complete/src/MultiAgentWorkshop.AppHost/MultiAgentWorkshop.AppHost.csproj"
+secrets="$REPOSITORY_ROOT/samples/02-concurrent-pattern/complete/src/MultiAgentWorkshop.AppHost/MultiAgentWorkshop.AppHost.csproj"
 
 foundryName=$(dotnet user-secrets --project "$secrets" list \
     | grep '^FOUNDRY_NAME ' | sed 's/^FOUNDRY_NAME = //')

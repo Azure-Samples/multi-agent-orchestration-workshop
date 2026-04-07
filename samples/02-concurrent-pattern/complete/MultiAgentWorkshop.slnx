@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MultiAgentWorkshop.Agent/MultiAgentWorkshop.Agent.csproj" />
+    <Project Path="src/MultiAgentWorkshop.AppHost/MultiAgentWorkshop.AppHost.csproj" />
+    <Project Path="src/MultiAgentWorkshop.Models/MultiAgentWorkshop.Models.csproj" />
+    <Project Path="src/MultiAgentWorkshop.ServiceDefaults/MultiAgentWorkshop.ServiceDefaults.csproj" />
+    <Project Path="src/MultiAgentWorkshop.WebUI/MultiAgentWorkshop.WebUI.csproj" />
+  </Folder>
+</Solution>
