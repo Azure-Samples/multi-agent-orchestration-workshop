@@ -1,4 +1,5 @@
 using Azure.AI.Extensions.OpenAI;
+using Azure.AI.OpenAI;
 using Azure.AI.Projects;
 using Azure.Identity;
 
@@ -32,22 +33,55 @@ builder.AddServiceDefaults();
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
 var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
 
+// For the handoff pattern, use ChatClientAgent instead of Foundry prompt agents.
+// Foundry prompt agents don't support dynamically injected handoff tools at invocation time.
+// ChatClientAgent allows the framework to inject handoff_to_* tools via ChatOptions.Tools.
+var url = $"{string.Join("://", endpoint.Split([ ':', '/' ], StringSplitOptions.RemoveEmptyEntries).Take(2))}/openai/v1/";
+Console.WriteLine($"Url: {url}");
+IChatClient chatClient = new AgentRecordShimChatClient(
+    new AzureOpenAIClient(new Uri(url), credential)
+        .GetResponsesClient()
+        .AsIChatClient(model));
+
 foreach (var agentSettings in agents)
 {
-    var agentReference = new AgentReference(agentSettings.Name, agentSettings.Version);
+    var instruction = await File.ReadAllTextAsync(
+        Path.Combine(builder.Environment.ContentRootPath, "..", "MultiAgentWorkshop.PromptAgent", $"{agentSettings.Name}.txt"));
 
-    var agent = projectClient.AsAIAgent(
-        agentReference: agentReference,
-        clientFactory: inner => new AgentRecordShimChatClient(inner)
-    );
+    var agent = new ChatClientAgent(
+        chatClient,
+        instructions: instruction,
+        name: agentSettings.Name);
 
     builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
 }
 
-builder.AddWorkflow("publisher", (sp, key) => AgentWorkflowBuilder.BuildSequential(
-    workflowName: key,
-    agents: [.. agents.Select(a => sp.GetRequiredKeyedService<AIAgent>(a.Name))]
-)).AddAsAIAgent("publisher");
+builder.AddWorkflow("publisher", (sp, key) =>
+{
+    var triage = sp.GetRequiredKeyedService<AIAgent>("triage-agent");
+    var generalSupport = sp.GetRequiredKeyedService<AIAgent>("general-support-agent");
+    var networkSpecialist = sp.GetRequiredKeyedService<AIAgent>("network-specialist-agent");
+    var warranty = sp.GetRequiredKeyedService<AIAgent>("warranty-agent");
+
+    var specialists = new[] { generalSupport, networkSpecialist, warranty };
+
+    var workflow = AgentWorkflowBuilder.CreateHandoffBuilderWith(triage)
+        // Triage can hand off to any specialist
+        .WithHandoffs(triage, specialists)
+        // Each specialist can hand off to other specialists
+        .WithHandoffs(generalSupport, [networkSpecialist, warranty])
+        .WithHandoffs(networkSpecialist, [generalSupport, warranty])
+        .WithHandoffs(warranty, [generalSupport, networkSpecialist])
+        // All specialists hand back to triage
+        .WithHandoffs(specialists, triage, "Hand back to triage when the issue is resolved or needs further routing")
+        .Build();
+
+    // HandoffWorkflowBuilder.Build() doesn't set the workflow name.
+    // Set it via reflection so AddWorkflow's name validation passes.
+    typeof(Workflow).GetProperty("Name")!.SetValue(workflow, key);
+
+    return workflow;
+}).AddAsAIAgent("publisher");
 
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
@@ -64,6 +98,7 @@ app.MapOpenAIConversations();
 app.MapAGUI(
     pattern: "ag-ui",
     aiAgent: app.Services.GetRequiredKeyedService<AIAgent>("publisher")
+                         .CreateFixedAgent()
 );
 
 if (builder.Environment.IsDevelopment() == true)

@@ -61,7 +61,6 @@ builder.AddWorkflow("publisher", (sp, key) => AgentWorkflowBuilder.BuildSequenti
     ]
 )).AddAsAIAgent("publisher");
 
-
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
 
