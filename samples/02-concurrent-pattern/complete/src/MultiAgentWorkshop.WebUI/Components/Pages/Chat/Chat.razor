@@ -20,10 +20,11 @@
 
 @code {
     private const string SystemPrompt = """
-        You're an expert analyst working at a venture capital firm.
-        The user will provide you with a business idea, and you'll respond with a full analysis on its market potential, technology feasibility, financial model, and risk assessment.
+        You're an investment analysis team at a venture capital firm.
+        The user will provide you with a startup pitch, and you'll respond with a comprehensive investment recommendation.
+        Four specialist agents (market analysis, technology feasibility, financial model, and risk assessment) will analyse the pitch concurrently, then an aggregator will synthesise their findings into a single invest/pass/conditional recommendation.
         Your responses should be in markdown format, and include a title, an introduction, several sections with headings, and a conclusion.
-        The analysis should be no more than 500 words, and should be engaging and informative.
+        The recommendation should be engaging, informative, and include a confidence level.
         """;
 
     // Number of concurrent agents in the pipeline (before the aggregator)

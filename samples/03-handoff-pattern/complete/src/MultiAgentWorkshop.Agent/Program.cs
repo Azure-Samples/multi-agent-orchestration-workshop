@@ -1,4 +1,3 @@
-using Azure.AI.Extensions.OpenAI;
 using Azure.AI.OpenAI;
 using Azure.AI.Projects;
 using Azure.Identity;
@@ -10,9 +9,8 @@ using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 
+using MultiAgentWorkshop.Agent.Infrastructure;
 using MultiAgentWorkshop.Models.Configuration;
-
-using OpenAI.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,23 +23,20 @@ var agents = project.Agents ?? throw new InvalidOperationException("Missing Foun
 
 builder.AddServiceDefaults();
 
-// Foundry Agent Client
-// NOTE: projectClient.AsAIAgent() crashes due to Azure.AI.Projects.Agents 2.0.0
-// renaming AgentRecord → ProjectsAgentRecord, while Microsoft.Agents.AI.AzureAI
-// 1.0.0-rc5 still references the old type name in GetService().
-// Workaround: use clientFactory to wrap the inner client and intercept GetService.
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
-var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
+// var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
 
 // For the handoff pattern, use ChatClientAgent instead of Foundry prompt agents.
 // Foundry prompt agents don't support dynamically injected handoff tools at invocation time.
 // ChatClientAgent allows the framework to inject handoff_to_* tools via ChatOptions.Tools.
 var url = $"{string.Join("://", endpoint.Split([ ':', '/' ], StringSplitOptions.RemoveEmptyEntries).Take(2))}/openai/v1/";
-Console.WriteLine($"Url: {url}");
-IChatClient chatClient = new AgentRecordShimChatClient(
-    new AzureOpenAIClient(new Uri(url), credential)
-        .GetResponsesClient()
-        .AsIChatClient(model));
+// IChatClient chatClient = new AgentRecordShimChatClient(
+//     new AzureOpenAIClient(new Uri(url), credential)
+//         .GetResponsesClient()
+//         .AsIChatClient(model));
+var chatClient = new AzureOpenAIClient(new Uri(url), credential)
+                     .GetResponsesClient()
+                     .AsIChatClient(model);
 
 foreach (var agentSettings in agents)
 {
@@ -110,23 +105,4 @@ else
     app.UseHttpsRedirection();
 }
 
-app.Run();
-
-/// <summary>
-/// Wraps an IChatClient to intercept GetService calls that would trigger loading
-/// the missing AgentRecord type, preventing a TypeLoadException.
-/// </summary>
-internal sealed class AgentRecordShimChatClient(IChatClient inner) : DelegatingChatClient(inner)
-{
-    public override object? GetService(Type serviceType, object? serviceKey = null)
-    {
-        try
-        {
-            return base.GetService(serviceType, serviceKey);
-        }
-        catch (TypeLoadException)
-        {
-            return null;
-        }
-    }
-}
+await app.RunAsync();
