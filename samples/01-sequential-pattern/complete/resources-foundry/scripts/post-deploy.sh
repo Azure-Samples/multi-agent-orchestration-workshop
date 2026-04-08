@@ -2,7 +2,7 @@
 
 REPOSITORY_ROOT=$(git rev-parse --show-toplevel)
 
-pushd "$REPOSITORY_ROOT/resources-foundry"
+pushd "$REPOSITORY_ROOT/samples/01-sequential-pattern/complete/resources-foundry"
 
 tenantId=$(azd env get-value AZURE_TENANT_ID)
 
