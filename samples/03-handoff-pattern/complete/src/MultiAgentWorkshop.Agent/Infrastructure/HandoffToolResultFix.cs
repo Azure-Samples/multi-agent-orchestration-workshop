@@ -22,6 +22,8 @@ using System.Text.Json;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
+namespace MultiAgentWorkshop.Agent.Infrastructure;
+
 /// <summary>
 /// Temporary workaround for microsoft/agent-framework#2775.
 /// Wraps a handoff workflow <see cref="AIAgent"/> so that plain-string tool

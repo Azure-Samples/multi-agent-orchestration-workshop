@@ -27,6 +27,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\MultiAgentWorkshop.PromptAgent\*.txt" Link="Prompts\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MultiAgentWorkshop.Models\MultiAgentWorkshop.Models.csproj" />
     <ProjectReference Include="..\MultiAgentWorkshop.ServiceDefaults\MultiAgentWorkshop.ServiceDefaults.csproj" />
   </ItemGroup>

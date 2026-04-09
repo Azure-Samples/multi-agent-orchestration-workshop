@@ -1,5 +1,4 @@
 using Azure.AI.OpenAI;
-using Azure.AI.Projects;
 using Azure.Identity;
 
 using Microsoft.Agents.AI;
@@ -24,16 +23,11 @@ var agents = project.Agents ?? throw new InvalidOperationException("Missing Foun
 builder.AddServiceDefaults();
 
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
-// var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
 
 // For the handoff pattern, use ChatClientAgent instead of Foundry prompt agents.
 // Foundry prompt agents don't support dynamically injected handoff tools at invocation time.
 // ChatClientAgent allows the framework to inject handoff_to_* tools via ChatOptions.Tools.
 var url = $"{string.Join("://", endpoint.Split([ ':', '/' ], StringSplitOptions.RemoveEmptyEntries).Take(2))}/openai/v1/";
-// IChatClient chatClient = new AgentRecordShimChatClient(
-//     new AzureOpenAIClient(new Uri(url), credential)
-//         .GetResponsesClient()
-//         .AsIChatClient(model));
 var chatClient = new AzureOpenAIClient(new Uri(url), credential)
                      .GetResponsesClient()
                      .AsIChatClient(model);
@@ -41,7 +35,7 @@ var chatClient = new AzureOpenAIClient(new Uri(url), credential)
 foreach (var agentSettings in agents)
 {
     var instruction = await File.ReadAllTextAsync(
-        Path.Combine(builder.Environment.ContentRootPath, "..", "MultiAgentWorkshop.PromptAgent", $"{agentSettings.Name}.txt"));
+        Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentSettings.Name}.txt"));
 
     var agent = new ChatClientAgent(
         chatClient,
