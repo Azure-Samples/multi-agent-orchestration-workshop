@@ -7,8 +7,6 @@ param location string = resourceGroup().location
 @description('Tags that will be applied to all resources')
 param tags object = {}
 
-param mcpTodoExists bool
-
 @description('Id of the user or app to assign application roles')
 param principalId string
 
@@ -37,120 +35,8 @@ param gptCapacity int = 10
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
 
-var acrPullRoleId = '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 var azureAIUserRoleId = '53ca6127-db72-4b80-b1b0-d745d6d5456d'
 var cognitiveServicesUserRoleId = 'a97b65f3-24c7-4388-baec-2e87135dc908'
-
-// Monitor application with Azure Monitor
-module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
-  name: 'monitoring'
-  params: {
-    logAnalyticsName: '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
-    applicationInsightsName: '${abbrs.insightsComponents}${resourceToken}'
-    applicationInsightsDashboardName: '${abbrs.portalDashboards}${resourceToken}'
-    location: location
-    tags: tags
-  }
-}
-
-// Container registry
-module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
-  name: 'registry'
-  params: {
-    name: '${abbrs.containerRegistryRegistries}${resourceToken}'
-    location: location
-    tags: tags
-    publicNetworkAccess: 'Enabled'
-    roleAssignments: [
-      {
-        principalId: mcpTodoIdentity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', acrPullRoleId)
-      }
-    ]
-  }
-}
-
-// Container apps environment
-module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.4.5' = {
-  name: 'container-apps-environment'
-  params: {
-    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
-    name: '${abbrs.appManagedEnvironments}${resourceToken}'
-    location: location
-    zoneRedundant: false
-  }
-}
-
-// User assigned identity
-module mcpTodoIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
-  name: 'mcp-todo-identity'
-  params: {
-    name: '${abbrs.managedIdentityUserAssignedIdentities}mcp-todo-${resourceToken}'
-    location: location
-  }
-}
-
-// Azure Container Apps
-module mcpTodoFetchLatestImage './modules/fetch-container-image.bicep' = {
-  name: 'mcp-todo-fetch-image'
-  params: {
-    exists: mcpTodoExists
-    name: 'mcp-todo'
-  }
-}
-
-module mcpTodo 'br/public:avm/res/app/container-app:0.8.0' = {
-  name: 'mcp-todo'
-  params: {
-    name: 'mcp-todo'
-    ingressTargetPort: 8080
-    scaleMinReplicas: 1
-    scaleMaxReplicas: 10
-    secrets: {
-      secureList: []
-    }
-    containers: [
-      {
-        image: mcpTodoFetchLatestImage.outputs.?containers[?0].?image ?? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
-        name: 'main'
-        resources: {
-          cpu: json('0.5')
-          memory: '1.0Gi'
-        }
-        env: [
-          {
-            name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-            value: monitoring.outputs.applicationInsightsConnectionString
-          }
-          {
-            name: 'AZURE_CLIENT_ID'
-            value: mcpTodoIdentity.outputs.clientId
-          }
-          {
-            name: 'PORT'
-            value: '8080'
-          }
-        ]
-      }
-    ]
-    managedIdentities: {
-      systemAssigned: false
-      userAssignedResourceIds: [
-        mcpTodoIdentity.outputs.resourceId
-      ]
-    }
-    registries: [
-      {
-        server: containerRegistry.outputs.loginServer
-        identity: mcpTodoIdentity.outputs.resourceId
-      }
-    ]
-    environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    location: location
-    tags: union(tags, { 'azd-service-name': 'mcp-todo' })
-  }
-}
 
 // Deploy Microsoft Foundry resources
 resource foundry 'Microsoft.CognitiveServices/accounts@2025-10-01-preview' = {
@@ -259,11 +145,6 @@ resource cloudCognitiveServicesUserRoleAssignment 'Microsoft.Authorization/roleA
 }
 
 // Outputs
-output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.outputs.loginServer
-output AZURE_RESOURCE_MCP_TODO_ID string = mcpTodo.outputs.resourceId
-output AZURE_RESOURCE_MCP_TODO_NAME string = mcpTodo.outputs.name
-output AZURE_RESOURCE_MCP_TODO_FQDN string = mcpTodo.outputs.fqdn
-
 output FOUNDRY_NAME string = foundry.name
 output FOUNDRY_RESOURCE_ID string = foundry.id
 output FOUNDRY_ENDPOINT string = foundry.properties.endpoints['AI Foundry API']
