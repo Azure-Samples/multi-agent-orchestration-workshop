@@ -4,17 +4,12 @@ using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var foundry = builder.AddFoundry("foundry");
-var agents = builder.AddAgents("agents");
+// Add resource for Microsoft Foundry
 
-var agent = builder.AddProject<MultiAgentWorkshop_Agent>("agent")
-                   .WithExternalHttpEndpoints()
-                   .WithReference(foundry);
+// Add resource for agents on Microsoft Foundry
 
-var webUI = builder.AddProject<MultiAgentWorkshop_WebUI>("webui")
-                   .WithExternalHttpEndpoints()
-                   .WithReference(agents)
-                   .WithReference(agent)
-                   .WaitFor(agent);
+// Add backend agent service
+
+// Add frontend web UI
 
 await builder.Build().RunAsync();

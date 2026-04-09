@@ -29,6 +29,7 @@ In this workshop, we're building all multi-agent orchestration patterns except t
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or higher
 - [Visual Studio 2026](https://visualstudio.microsoft.com/downloads/) or [VS Code](https://code.visualstudio.com/download) + [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
 - [Docker Desktop](https://docs.docker.com/desktop/) or equivalent
+- [GitHub CLI](https://cli.github.com)
 - [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
 - [Aspire CLI](https://aspire.dev/get-started/install-cli/)

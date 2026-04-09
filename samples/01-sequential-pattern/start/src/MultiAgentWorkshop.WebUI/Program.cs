@@ -15,17 +15,11 @@ builder.AddServiceDefaults();
 builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-builder.Services.AddSingleton(agents);
+// Register all agents passed from Aspire
 
-builder.Services.AddHttpClient("agent", client =>
-{
-    client.BaseAddress = new Uri("https+http://agent");
-});
+// Register the backend agent service as an HTTP client
 
-builder.Services.AddChatClient(sp => new AGUIChatClient(
-    httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("agent"),
-    endpoint: "ag-ui")
-);
+// Register AGUI client
 
 var app = builder.Build();
 

@@ -46,11 +46,6 @@ foreach (var agentSettings in agents)
     var instruction = await File.ReadAllTextAsync(Path.Combine(GetScriptDirectory(), $"{agentSettings.Name}.txt"));
     var definition = ProjectsAgentDefinition.CreatePromptAgentDefinition(model)
                                             .AddInstruction(instruction);
-    if (agentSettings.Name == "research-agent")
-    {
-        var tool = ResponseTool.CreateWebSearchTool();
-        definition.AddTools(tool);
-    }
 
     var agent = await agentClient.CreateAgentVersionAsync(
         agentName: agentSettings.Name,
