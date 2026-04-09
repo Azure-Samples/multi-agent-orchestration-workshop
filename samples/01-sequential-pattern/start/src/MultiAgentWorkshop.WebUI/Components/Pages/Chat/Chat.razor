@@ -1,0 +1,118 @@
+﻿@page "/"
+@using System.ComponentModel
+@using MultiAgentWorkshop.Models.Configuration
+@inject IChatClient ChatClient
+@inject IEnumerable<AgentSettings> Agents
+@inject ILogger<Chat> Logger
+@implements IDisposable
+
+<PageTitle>Chat</PageTitle>
+
+<ChatHeader OnNewChat="@ResetConversationAsync" />
+
+<ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage">
+    <NoMessagesContent>
+        <div>I'm your friendly assistant. What can I do for you today?</div>
+    </NoMessagesContent>
+</ChatMessageList>
+
+<div class="chat-container">
+    <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />
+</div>
+
+@code {
+    private const string SystemPrompt = """
+        You're an expert writing a technical blog post.
+        The user will provide you with a topic, and you'll respond with a blog post on that topic.
+        Your responses should be in markdown format, and include a title, an introduction, several sections with headings, and a conclusion.
+        The blog post should be no more than 500 words, and should be engaging and informative.
+        """;
+
+    private IEnumerable<string> agentNames = [];
+
+    private int statefulMessageCount;
+    private readonly ChatOptions chatOptions = new();
+    private readonly List<ChatMessage> messages = new();
+    private CancellationTokenSource? currentResponseCancellation;
+    private ChatMessage? currentResponseMessage;
+    private ChatInput? chatInput;
+
+    protected override void OnInitialized()
+    {
+        agentNames = Agents.Select(a => a.Name!);
+        statefulMessageCount = 0;
+        messages.Add(new(ChatRole.System, SystemPrompt));
+        chatOptions.Tools = [];
+    }
+
+    private async Task AddUserMessageAsync(ChatMessage userMessage)
+    {
+        CancelAnyCurrentResponse();
+
+        // Add the user message to the conversation
+        messages.Add(userMessage);
+        await chatInput!.FocusAsync();
+
+        // Stream and display a new response from the IChatClient
+        var responseText = new TextContent("");
+        currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+        currentResponseCancellation = new();
+        string? currentMessageId = null;
+        int agentIndex = 0;
+        currentResponseMessage.AuthorName = agentNames.ElementAtOrDefault(agentIndex);
+        StateHasChanged();
+        await foreach (var update in ChatClient.GetStreamingResponseAsync(messages.Skip(statefulMessageCount), chatOptions, currentResponseCancellation.Token))
+        {
+            messages.AddMessages(update, filter: c => c is not TextContent);
+
+            // When the MessageId changes, a new agent in the pipeline has started responding
+            if (update.MessageId is not null && update.MessageId != currentMessageId)
+            {
+                if (currentMessageId is not null && responseText.Text?.Length > 0)
+                {
+                    messages.Add(currentResponseMessage!);
+                    responseText = new TextContent("");
+                    currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+                    agentIndex++;
+                    currentResponseMessage.AuthorName = agentNames.ElementAtOrDefault(agentIndex);
+                }
+                currentMessageId = update.MessageId;
+            }
+
+            responseText.Text += update.Text;
+            chatOptions.ConversationId = update.ConversationId;
+            ChatMessageItem.NotifyChanged(currentResponseMessage);
+            StateHasChanged();
+        }
+
+        // Store the final response in the conversation, and begin getting suggestions
+        messages.Add(currentResponseMessage!);
+        statefulMessageCount = chatOptions.ConversationId is not null ? messages.Count : 0;
+        currentResponseMessage = null;
+    }
+
+    private void CancelAnyCurrentResponse()
+    {
+        // If a response was cancelled while streaming, include it in the conversation so it's not lost
+        if (currentResponseMessage is not null)
+        {
+            messages.Add(currentResponseMessage);
+        }
+
+        currentResponseCancellation?.Cancel();
+        currentResponseMessage = null;
+    }
+
+    private async Task ResetConversationAsync()
+    {
+        CancelAnyCurrentResponse();
+        messages.Clear();
+        messages.Add(new(ChatRole.System, SystemPrompt));
+        chatOptions.ConversationId = null;
+        statefulMessageCount = 0;
+        await chatInput!.FocusAsync();
+    }
+
+    public void Dispose()
+        => currentResponseCancellation?.Cancel();
+}

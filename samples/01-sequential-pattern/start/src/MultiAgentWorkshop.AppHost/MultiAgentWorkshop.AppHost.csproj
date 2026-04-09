@@ -1,0 +1,23 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.2.1">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+
+    <TargetFramework>net10.0</TargetFramework>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <UserSecretsId>eb5e880d-860a-4954-887d-489dc9b515d6</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MultiAgentWorkshop.Agent\MultiAgentWorkshop.Agent.csproj" />
+    <ProjectReference Include="..\MultiAgentWorkshop.WebUI\MultiAgentWorkshop.WebUI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MultiAgentWorkshop.Models\MultiAgentWorkshop.Models.csproj" IsAspireProjectResource="false" />
+  </ItemGroup>
+
+</Project>

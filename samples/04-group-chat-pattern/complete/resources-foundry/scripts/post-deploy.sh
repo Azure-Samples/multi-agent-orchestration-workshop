@@ -19,7 +19,6 @@ dotnet user-secrets --file "$REPOSITORY_ROOT/samples/04-group-chat-pattern/compl
 dotnet user-secrets --file "$REPOSITORY_ROOT/samples/04-group-chat-pattern/complete/src/MultiAgentWorkshop.PromptAgent/create-agents.cs" set "FOUNDRY_PROJECT_NAME" $foundryProjectName
 dotnet user-secrets --file "$REPOSITORY_ROOT/samples/04-group-chat-pattern/complete/src/MultiAgentWorkshop.PromptAgent/create-agents.cs" set "FOUNDRY_RESOURCE_GROUP" $foundryResourceGroup
 
-dotnet user-secrets --file "$REPOSITORY_ROOT/samples/04-group-chat-pattern/complete/src/MultiAgentWorkshop.PromptAgent/create-agents.cs" set "AZURE_RESOURCE_MCP_TODO_FQDN" $mcpTodoFqdn
 dotnet user-secrets --file "$REPOSITORY_ROOT/samples/04-group-chat-pattern/complete/src/MultiAgentWorkshop.PromptAgent/create-agents.cs" set "Foundry:Project:Endpoint" "$projectEndpoint"
 
 dotnet run --file "$REPOSITORY_ROOT/samples/04-group-chat-pattern/complete/src/MultiAgentWorkshop.PromptAgent/create-agents.cs"
