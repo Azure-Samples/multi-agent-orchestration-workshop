@@ -26,6 +26,8 @@ You're writing a technical blog post with agents &ndash; research agent, outline
 
 ## Copy the start project
 
+1. If you already have the `workshop` directory, change the name to something else like `workshop-01`.
+
 1. In your terminal, run the following command to copy the start project to the workshop directory.
 
     ```bash
@@ -174,7 +176,9 @@ You're writing a technical blog post with agents &ndash; research agent, outline
     var foundry = builder.AddFoundry("foundry");
     ```
 
-   > **NOTE**: `.AddFoundry()` is a custom resource that adds the Microsoft Foundry connection details. If you want to know more about the Aspire custom resource, visit [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/).
+   Let's break down the code.
+
+   - `builder.AddFoundry("foundry")`: This adds the Microsoft Foundry connection details through a custom resource, `FoundryResource`. If you want to know more about the Aspire custom resource, visit [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/).
 
 1. In the same file, find the comment `// Add resource for agents on Microsoft Foundry` and add the code right underneath it. This exposes the list of agent details to the referencing application.
 
@@ -183,27 +187,40 @@ You're writing a technical blog post with agents &ndash; research agent, outline
     var agents = builder.AddAgents("agents");
     ```
 
-   > **NOTE**: `.AddAgents()` is a custom resource that adds the list of agent details. If you want to know more about the Aspire custom resource, visit [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/).
+   Let's break down the code.
+
+   - `builder.AddAgents("agents")`: This adds the list of agent details through a custom resource, `AgentResource`. If you want to know more about the Aspire custom resource, visit [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/).
 
 1. In the same file, find the comment `// Add backend agent service` and add the code right underneath it. This defines the backend agent service that references the `foundry` resource &ndash; all the Microsoft Foundry connection details are passed to the backend agent service app.
 
     ```csharp
     // Add backend agent service
     var agent = builder.AddProject<MultiAgentWorkshop_Agent>("agent")
-                      .WithExternalHttpEndpoints()
-                      .WithReference(foundry);
+                       .WithReference(foundry);
     ```
+
+   Let's break down the code.
+
+   - `builder.AddProject<MultiAgentWorkshop_Agent>("agent")`: This adds the backend agent service app as a .NET project.
+   - `.WithReference(foundry)`: This references the foundry resource created above, which passes the Microsoft Foundry connection details to the backend agent service app.
 
 1. In the same file, find the comment `// Add frontend web UI` and add the code right underneath it. This defines the frontend web UI that references both the `agents` and `agent` resources &ndash; the agent details and backend connection details are both passed to the frontend web UI app.
 
     ```csharp
     // Add frontend web UI
     var webUI = builder.AddProject<MultiAgentWorkshop_WebUI>("webui")
-                      .WithExternalHttpEndpoints()
-                      .WithReference(agents)
-                      .WithReference(agent)
-                      .WaitFor(agent);
+                       .WithExternalHttpEndpoints()
+                       .WithReference(agents)
+                       .WithReference(agent)
+                       .WaitFor(agent);
     ```
+
+   Let's break down the code.
+
+   - `builder.AddProject<MultiAgentWorkshop_WebUI>("webui")`: This adds the frontend web UI app as a .NET project.
+   - `.WithExternalHttpEndpoints()`: This exposes this frontend web UI app to the Internet, which is publicly accessible.
+   - `.WithReference(agents)`: This references the agent resource created above, which passes the list of agents to the frontend web UI app.
+   - `.WithReference(agent)`: This references the backend agent service app, which passes the connection details to the frontend web UI app.
 
 ## Implement sequential pattern on backend agent service
 
@@ -220,6 +237,11 @@ You're writing a technical blog post with agents &ndash; research agent, outline
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
     var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
     ```
+
+   Let's break down the code.
+
+   - `new DefaultAzureCredential(...)`: This logs in to Azure without an API key. It uses your Azure CLI login or Azure Developer CLI login details on your local machine, and Managed Identity when the app is deployed to Azure.
+   - `new AIProjectClient(endpoint, credential)`: This connects to the Microsoft Foundry project instance using the endpoint and login details.
 
 1. In the same file, find the comment `// Register all agents passed from Aspire` and add the code right underneath it. This pulls the agent details from the Microsoft Foundry project and registers them in the IoC container as singleton services.
 
@@ -238,6 +260,13 @@ You're writing a technical blog post with agents &ndash; research agent, outline
     }
     ```
 
+   Let's break down the code.
+
+   - We already know the list of agents but only know their names. Therefore, the code runs the `foreach` loop for each agent.
+   - `new AgentReference(name, version)`: Using each agent's information, this creates a reference instance.
+   - `projectClient.AsAIAgent(reference, factory)`: This connects to the actual agent using the reference details.
+   - `builder.Services.AddKeyedSingleton<AIAgent>(name, agent)`: This registers the agent instance as a singleton service.
+
    > **NOTE**: You may notice the `AgentRecordShimChatClient` class. It's a temporary workaround for a version mismatch between the Microsoft Agent Framework and the Microsoft Foundry SDK, which will be removed soon.
 
 1. In the same file, find the comment `// Build a sequential workflow pattern with the agents registered` and add the code right underneath it.
@@ -253,7 +282,9 @@ You're writing a technical blog post with agents &ndash; research agent, outline
    Let's break down the code.
 
    - `builder.AddWorkflow("publisher, ...).AddAsAIAgent("publisher")`: This adds the multi-agent workflow as another agent instance named `publisher` and registers it as a singleton.
-   - `AgentWorkflowBuilder.BuildSequential(...)`: This is the sequential workflow builder that uses the same name, `publisher`. Note that it adds multiple agents from the previously registered services in the order declared by the `agents` array.
+   - `AgentWorkflowBuilder.BuildSequential(...)`: This is the sequential workflow builder that uses the same name, `publisher`.
+
+     Note that it adds multiple agents from the previously registered services in the order declared by the `agents` array.
 
 1. In the same file, find the comment `// Map AGUI to the publisher workflow agent` and add the code right underneath it. The workflow is exposed as an API endpoint at `ag-ui` so that the frontend web UI can communicate with this backend agent service app.
 
@@ -324,11 +355,11 @@ You're writing a technical blog post with agents &ndash; research agent, outline
 
 1. When the Dev UI page opens, change the agent to `publisher` and click the "Configure & Run" button.
 
-   ![Microsoft Agent Framework Dev UI](./images/step-01-image-02.png)
+   ![Microsoft Agent Framework Dev UI - Sequential pattern](./images/step-01-image-02.png)
 
 1. Send any request.
 
-   ![Microsoft Agent Framework Dev UI - Sent request](./images/step-01-image-03.png)
+   ![Microsoft Agent Framework Dev UI - Send request](./images/step-01-image-03.png)
 
    See the result and how the workflow progresses on the left-hand side of the screen.
 

@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: microsoft-foundry-prompt-agent-net
+
+metadata:
+  template: microsoft-foundry-prompt-agent-net@1.0.0
+  author: Justin Yoo
+  description: Provision Microsoft Foundry Agent and MCP server using Azure Developer CLI
+
+hooks:
+  postdeploy:
+    posix:
+      shell: sh
+      run: ./scripts/post-deploy.sh
+      interactive: false
+    windows:
+      shell: pwsh
+      run: ./scripts/post-deploy.ps1
+      interactive: false

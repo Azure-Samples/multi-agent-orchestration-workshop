@@ -1,0 +1,118 @@
+﻿@page "/"
+@using System.ComponentModel
+@inject IChatClient ChatClient
+@inject ILogger<Chat> Logger
+@implements IDisposable
+
+<PageTitle>Chat</PageTitle>
+
+<ChatHeader OnNewChat="@ResetConversationAsync" />
+
+<ChatMessageList Messages="@messages" InProgressMessage="@currentResponseMessage">
+    <NoMessagesContent>
+        <div>I'm your friendly assistant. What can I do for you today?</div>
+    </NoMessagesContent>
+</ChatMessageList>
+
+<div class="chat-container">
+    <ChatInput OnSend="@AddUserMessageAsync" @ref="@chatInput" />
+</div>
+
+@code {
+    private const string SystemPrompt = """
+        You're an investment analysis team at a venture capital firm.
+        The user will provide you with a startup pitch, and you'll respond with a comprehensive investment recommendation.
+        Four specialist agents (market analysis, technology feasibility, financial model, and risk assessment) will analyse the pitch concurrently, then an aggregator will synthesise their findings into a single invest/pass/conditional recommendation.
+        Your responses should be in markdown format, and include a title, an introduction, several sections with headings, and a conclusion.
+        The recommendation should be engaging, informative, and include a confidence level.
+        """;
+
+    // Number of concurrent agents in the pipeline (before the aggregator)
+    private const string ConcurrentLabel = "concurrent-analysis";
+    private const string AggregatorLabel = "aggregator-agent";
+
+    private int statefulMessageCount;
+    private readonly ChatOptions chatOptions = new();
+    private readonly List<ChatMessage> messages = new();
+    private CancellationTokenSource? currentResponseCancellation;
+    private ChatMessage? currentResponseMessage;
+    private ChatInput? chatInput;
+
+    protected override void OnInitialized()
+    {
+        statefulMessageCount = 0;
+        messages.Add(new(ChatRole.System, SystemPrompt));
+        chatOptions.Tools = [];
+    }
+
+    private async Task AddUserMessageAsync(ChatMessage userMessage)
+    {
+        CancelAnyCurrentResponse();
+
+        // Add the user message to the conversation
+        messages.Add(userMessage);
+        await chatInput!.FocusAsync();
+
+        // Stream and display a new response from the IChatClient
+        var responseText = new TextContent("");
+        currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+        currentResponseMessage.AuthorName = ConcurrentLabel;
+        currentResponseCancellation = new();
+        var allMessageIds = new HashSet<string>();
+        StateHasChanged();
+        await foreach (var update in ChatClient.GetStreamingResponseAsync(messages.Skip(statefulMessageCount), chatOptions, currentResponseCancellation.Token))
+        {
+            messages.AddMessages(update, filter: c => c is not TextContent);
+
+            if (update.MessageId is not null && allMessageIds.Add(update.MessageId))
+            {
+                // A new MessageId appeared. If we already have content, save the current message.
+                if (responseText.Text?.Length > 0)
+                {
+                    messages.Add(currentResponseMessage!);
+                    responseText = new TextContent("");
+                    currentResponseMessage = new ChatMessage(ChatRole.Assistant, [responseText]);
+                    currentResponseMessage.AuthorName = ConcurrentLabel;
+                }
+            }
+
+            responseText.Text += update.Text;
+            chatOptions.ConversationId = update.ConversationId;
+            ChatMessageItem.NotifyChanged(currentResponseMessage);
+            StateHasChanged();
+        }
+
+        // The final streamed message is from the aggregator agent
+        currentResponseMessage!.AuthorName = AggregatorLabel;
+
+        // Store the final response in the conversation, and begin getting suggestions
+        messages.Add(currentResponseMessage!);
+        statefulMessageCount = chatOptions.ConversationId is not null ? messages.Count : 0;
+        currentResponseMessage = null;
+    }
+
+    private void CancelAnyCurrentResponse()
+    {
+        // If a response was cancelled while streaming, include it in the conversation so it's not lost
+        if (currentResponseMessage is not null)
+        {
+            messages.Add(currentResponseMessage);
+        }
+
+        currentResponseCancellation?.Cancel();
+        currentResponseMessage = null;
+    }
+
+    private async Task ResetConversationAsync()
+    {
+        CancelAnyCurrentResponse();
+        messages.Clear();
+        messages.Add(new(ChatRole.System, SystemPrompt));
+        chatOptions.ConversationId = null;
+        statefulMessageCount = 0;
+        await chatInput!.FocusAsync();
+    }
+
+    public void Dispose()
+        => currentResponseCancellation?.Cancel();
+}

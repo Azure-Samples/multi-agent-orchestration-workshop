@@ -1,0 +1,25 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: multi-agent-orchestration-workshop
+
+metadata:
+  template: multi-agent-orchestration-workshop@1.0.0
+  author: Justin Yoo
+  description: Provision multi-agent orchestration apps using Azure Developer CLI
+
+services:  
+  app:
+    project: ./src/MultiAgentWorkshop.AppHost/MultiAgentWorkshop.AppHost.csproj
+    host: containerapp
+    language: dotnet
+
+hooks:
+  postdeploy:
+    posix:
+      shell: sh
+      run: ./scripts/post-deploy.sh
+      interactive: false
+    windows:
+      shell: pwsh
+      run: ./scripts/post-deploy.ps1
+      interactive: false

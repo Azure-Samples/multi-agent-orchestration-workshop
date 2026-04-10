@@ -8,7 +8,6 @@ var foundry = builder.AddFoundry("foundry");
 var agents = builder.AddAgents("agents");
 
 var agent = builder.AddProject<MultiAgentWorkshop_Agent>("agent")
-                   .WithExternalHttpEndpoints()
                    .WithReference(foundry);
 
 var webUI = builder.AddProject<MultiAgentWorkshop_WebUI>("webui")
