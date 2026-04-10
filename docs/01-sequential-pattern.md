@@ -281,7 +281,7 @@ You're writing a technical blog post with agents &ndash; research agent, outline
 
    Let's break down the code.
 
-   - `builder.AddWorkflow("publisher, ...).AddAsAIAgent("publisher")`: This adds the multi-agent workflow as another agent instance named `publisher` and registers it as a singleton.
+   - `builder.AddWorkflow("publisher", ...).AddAsAIAgent("publisher")`: This adds the multi-agent workflow as another agent instance named `publisher` and registers it as a singleton.
    - `AgentWorkflowBuilder.BuildSequential(...)`: This is the sequential workflow builder that uses the same name, `publisher`.
 
      Note that it adds multiple agents from the previously registered services in the order declared by the `agents` array.

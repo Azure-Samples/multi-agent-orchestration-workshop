@@ -1,5 +1,4 @@
-using Azure.AI.Extensions.OpenAI;
-using Azure.AI.Projects;
+using Azure.AI.OpenAI;
 using Azure.Identity;
 
 using Microsoft.Agents.AI;
@@ -9,10 +8,9 @@ using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 
+using MultiAgentWorkshop.Agent.Extensions;
 using MultiAgentWorkshop.Agent.Infrastructure;
 using MultiAgentWorkshop.Models.Configuration;
-
-using OpenAI.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,11 +23,11 @@ var agents = project.Agents ?? throw new InvalidOperationException("Missing Foun
 
 builder.AddServiceDefaults();
 
-// Create AIProjectClient instance with EntraID authentication
+// Create AzureOpenAIClient instance with EntraID authentication
 
 // Register all agents passed from Aspire
 
-// Build a concurrent workflow pattern with the agents registered
+// Build a handoff workflow pattern with the agents registered
 
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();

@@ -8,6 +8,7 @@ using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 
+using MultiAgentWorkshop.Agent.Extensions;
 using MultiAgentWorkshop.Agent.Infrastructure;
 using MultiAgentWorkshop.Models.Configuration;
 
@@ -27,8 +28,8 @@ var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() 
 // For the handoff pattern, use ChatClientAgent instead of Foundry prompt agents.
 // Foundry prompt agents don't support dynamically injected handoff tools at invocation time.
 // ChatClientAgent allows the framework to inject handoff_to_* tools via ChatOptions.Tools.
-var url = $"{string.Join("://", endpoint.Split([ ':', '/' ], StringSplitOptions.RemoveEmptyEntries).Take(2))}/openai/v1/";
-var chatClient = new AzureOpenAIClient(new Uri(url), credential)
+var url = new Uri(endpoint.GetAzureOpenAIResponsesEndpoint());
+var chatClient = new AzureOpenAIClient(url, credential)
                      .GetResponsesClient()
                      .AsIChatClient(model);
 

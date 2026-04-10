@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <UserSecretsId>da95cb48-2649-4b62-b1b8-49596530e82e</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Agents.AI.AGUI" Version="1.*-*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MultiAgentWorkshop.Models\MultiAgentWorkshop.Models.csproj" />
+    <ProjectReference Include="..\MultiAgentWorkshop.ServiceDefaults\MultiAgentWorkshop.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

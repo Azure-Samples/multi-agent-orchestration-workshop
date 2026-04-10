@@ -302,7 +302,7 @@ You're working for a venture capital firm and analyzing a startup pitch with age
 
    Let's break down the code.
 
-   - `builder.AddWorkflow("concurrent-analysis, ...).AddAsAIAgent("concurrent-analysis")`: This adds the multi-agent workflow as another agent instance named `concurrent-analysis` and registers it as a singleton.
+   - `builder.AddWorkflow("concurrent-analysis", ...).AddAsAIAgent("concurrent-analysis")`: This adds the multi-agent workflow as another agent instance named `concurrent-analysis` and registers it as a singleton.
    - `AgentWorkflowBuilder.BuildConcurrent(...)`: This is the concurrent workflow builder that uses the same name, `concurrent-analysis`.
 
      Note that it adds multiple agents from the previously registered services declared by the `agents` array.
