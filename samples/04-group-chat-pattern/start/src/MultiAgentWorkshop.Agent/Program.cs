@@ -25,31 +25,11 @@ var agents = project.Agents ?? throw new InvalidOperationException("Missing Foun
 
 builder.AddServiceDefaults();
 
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
-var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
+// Create AIProjectClient instance with EntraID authentication
 
-foreach (var agentSettings in agents)
-{
-    var agentReference = new AgentReference(agentSettings.Name, agentSettings.Version);
+// Register all agents passed from Aspire
 
-    var agent = projectClient.AsAIAgent(
-        agentReference: agentReference,
-        clientFactory: inner => new AgentRecordShimChatClient(inner)
-    );
-
-    builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
-}
-
-builder.AddWorkflow("publisher", (sp, key) =>
-{
-    var participants = agents.Select(a => sp.GetRequiredKeyedService<AIAgent>(a.Name));
-
-    return AgentWorkflowBuilder.CreateGroupChatBuilderWith(agentList =>
-               new RoundRobinGroupChatManager(agentList) { MaximumIterationCount = participants.Count() * 2 })
-           .AddParticipants(participants)
-           .WithName(key)
-           .Build();
-}).AddAsAIAgent("publisher");
+// Build a group chat workflow pattern with the agents registered
 
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
@@ -63,10 +43,7 @@ app.MapDefaultEndpoints();
 app.MapOpenAIResponses();
 app.MapOpenAIConversations();
 
-app.MapAGUI(
-    pattern: "ag-ui",
-    aiAgent: app.Services.GetRequiredKeyedService<AIAgent>("publisher")
-);
+// Map AGUI to the publisher workflow agent
 
 if (builder.Environment.IsDevelopment() == true)
 {
