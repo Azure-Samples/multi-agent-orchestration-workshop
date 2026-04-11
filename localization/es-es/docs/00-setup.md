@@ -101,6 +101,8 @@ Para el taller, recomendamos encarecidamente usar GitHub Codespaces para ahorrar
 
    Si no ve esas cuatro líneas, elimine y vuelva a crear la instancia de GitHub Codespaces.
 
+1. Vaya a la sección [Iniciar sesión en Azure](#iniciar-sesión-en-azure).
+
 ## Configuración en VS Code
 
 Si ya tiene una instancia de GitHub Codespaces, omita esta sección y vaya directamente a la sección [Iniciar sesión en Azure](#iniciar-sesión-en-azure).

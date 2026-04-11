@@ -101,6 +101,8 @@ Para o workshop, recomendamos fortemente o uso do GitHub Codespaces para economi
 
    Se você não vir essas quatro linhas, exclua e recrie a instância do GitHub Codespaces.
 
+1. Vá para a seção [Fazer login no Azure](#fazer-login-no-azure).
+
 ## Configuração no VS Code
 
 Se você já tem uma instância do GitHub Codespaces, pule esta seção e vá diretamente para a seção [Fazer login no Azure](#fazer-login-no-azure).

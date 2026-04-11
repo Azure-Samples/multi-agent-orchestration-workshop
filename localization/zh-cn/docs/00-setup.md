@@ -101,6 +101,8 @@
 
    如果没有看到这四行，请删除并重新创建 GitHub Codespaces 实例。
 
+1. 前往[登录 Azure](#登录-azure)部分。
+
 ## 在 VS Code 中搭建
 
 如果您已经创建了 GitHub Codespaces 实例，请跳过本节，直接前往[登录 Azure](#登录-azure)部分。

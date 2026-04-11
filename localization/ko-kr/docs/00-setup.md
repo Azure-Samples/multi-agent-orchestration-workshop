@@ -101,6 +101,8 @@
 
    위 네 줄이 보이지 않으면 GitHub Codespaces 인스턴스를 삭제하고 다시 생성하세요.
 
+1. [Azure에 로그인하기](#azure에-로그인하기) 섹션으로 이동하세요.
+
 ## VS Code에서 설정하기
 
 이미 GitHub Codespaces 인스턴스가 있다면 이 섹션을 건너뛰고 [Azure에 로그인하기](#azure에-로그인하기) 섹션으로 직접 이동하세요.

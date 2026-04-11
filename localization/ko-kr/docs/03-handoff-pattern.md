@@ -234,8 +234,7 @@ IT 지원 팀에서 에이전트를 사용하여 작업합니다 &ndash; 일반 
     // EntraID 인증으로 AzureOpenAIClient 인스턴스 생성
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
 
-    var url = new Uri(endpoint.GetAzureOpenAIResponsesEndpoint());
-    var chatClient = new AzureOpenAIClient(url, credential)
+    var chatClient = new AzureOpenAIClient(new Uri(endpoint), credential)
                         .GetResponsesClient()
                         .AsIChatClient(model);
     ```
@@ -243,8 +242,7 @@ IT 지원 팀에서 에이전트를 사용하여 작업합니다 &ndash; 일반 
    코드를 분석해 봅시다.
 
    - `new DefaultAzureCredential(...)`: API 키 없이 Azure에 로그인합니다. 로컬 머신에서는 Azure CLI 또는 Azure Developer CLI 로그인 정보를 사용하고, Azure에 앱이 배포되면 Managed Identity를 사용합니다.
-   - `endpoint.GetAzureOpenAIResponsesEndpoint()`: Microsoft Foundry SDK가 현재 Handoff 패턴을 지원하지 않으므로 Microsoft Foundry 프로젝트 엔드포인트를 Microsoft Foundry OpenAI 엔드포인트로 변환합니다.
-   - `new AzureOpenAIClient(url, credential)`: 엔드포인트와 로그인 정보를 사용하여 Azure OpenAI 인스턴스에 연결하고 `IChatClient` 인스턴스로 변환합니다.
+   - `new AzureOpenAIClient(new Uri(endpoint), credential)`: 엔드포인트와 로그인 정보를 사용하여 Azure OpenAI 인스턴스에 연결하고 `IChatClient` 인스턴스로 변환합니다.
 
 1. 같은 파일에서 `// Register all agents passed from Aspire` 주석을 찾아 바로 아래에 코드를 추가합니다. 이 코드는 Microsoft Foundry 프로젝트에서 에이전트 세부 정보를 가져와 IoC 컨테이너에 싱글톤 서비스로 등록합니다.
 

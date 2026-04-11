@@ -234,8 +234,7 @@ Usted trabaja para un equipo de soporte de TI con agentes: agente de soporte gen
     // Create AzureOpenAIClient instance with EntraID authentication
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
 
-    var url = new Uri(endpoint.GetAzureOpenAIResponsesEndpoint());
-    var chatClient = new AzureOpenAIClient(url, credential)
+    var chatClient = new AzureOpenAIClient(new Uri(endpoint), credential)
                         .GetResponsesClient()
                         .AsIChatClient(model);
     ```
@@ -243,8 +242,7 @@ Usted trabaja para un equipo de soporte de TI con agentes: agente de soporte gen
    Analicemos el código.
 
    - `new DefaultAzureCredential(...)`: Esto inicia sesión en Azure sin una clave API. Utiliza los datos de inicio de sesión de Azure CLI o Azure Developer CLI en su máquina local, y Managed Identity cuando la aplicación se despliega en Azure.
-   - `endpoint.GetAzureOpenAIResponsesEndpoint()`: Esto convierte el endpoint del proyecto de Microsoft Foundry al endpoint de Microsoft Foundry OpenAI porque el SDK de Microsoft Foundry actualmente no admite el patrón handoff.
-   - `new AzureOpenAIClient(url, credential)`: Esto se conecta a la instancia de Azure OpenAI usando el endpoint y los datos de inicio de sesión y lo convierte a una instancia de `IChatClient`.
+   - `new AzureOpenAIClient(new Uri(endpoint), credential)`: Esto se conecta a la instancia de Azure OpenAI usando el endpoint y los datos de inicio de sesión y lo convierte a una instancia de `IChatClient`.
 
 1. En el mismo archivo, busque el comentario `// Register all agents passed from Aspire` y agregue el código justo debajo. Esto obtiene los detalles de los agentes del proyecto de Microsoft Foundry y los registra en el contenedor IoC como servicios singleton.
 

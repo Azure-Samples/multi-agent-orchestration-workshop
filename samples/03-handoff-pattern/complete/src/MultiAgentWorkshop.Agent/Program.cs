@@ -28,8 +28,7 @@ var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() 
 // For the handoff pattern, use ChatClientAgent instead of Foundry prompt agents.
 // Foundry prompt agents don't support dynamically injected handoff tools at invocation time.
 // ChatClientAgent allows the framework to inject handoff_to_* tools via ChatOptions.Tools.
-var url = new Uri(endpoint.GetAzureOpenAIResponsesEndpoint());
-var chatClient = new AzureOpenAIClient(url, credential)
+var chatClient = new AzureOpenAIClient(new Uri(endpoint), credential)
                      .GetResponsesClient()
                      .AsIChatClient(model);
 

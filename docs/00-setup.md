@@ -101,6 +101,8 @@ For the workshop, we strongly recommend using GitHub Codespaces to save time set
 
    If you don't see those four lines, delete and recreate the GitHub Codespaces instance.
 
+1. Move to the [Log in to Azure](#log-in-to-azure) section.
+
 ## Setup in VS Code
 
 If you already have a GitHub Codespaces instance, skip this section and go directly to the [Log in to Azure](#log-in-to-azure) section.

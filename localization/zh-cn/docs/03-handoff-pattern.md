@@ -234,8 +234,7 @@
     // 使用 EntraID 身份验证创建 AzureOpenAIClient 实例
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
 
-    var url = new Uri(endpoint.GetAzureOpenAIResponsesEndpoint());
-    var chatClient = new AzureOpenAIClient(url, credential)
+    var chatClient = new AzureOpenAIClient(new Uri(endpoint), credential)
                         .GetResponsesClient()
                         .AsIChatClient(model);
     ```
@@ -243,8 +242,7 @@
    让我们分解这段代码。
 
    - `new DefaultAzureCredential(...)`：这无需 API 密钥即可登录 Azure。在本地机器上使用您的 Azure CLI 登录或 Azure Developer CLI 登录详情，在部署到 Azure 时使用托管标识。
-   - `endpoint.GetAzureOpenAIResponsesEndpoint()`：这将 Microsoft Foundry 项目端点转换为 Microsoft Foundry OpenAI 端点，因为 Microsoft Foundry SDK 目前不支持交接模式。
-   - `new AzureOpenAIClient(url, credential)`：这使用端点和登录详情连接到 Azure OpenAI 实例，并将其转换为 `IChatClient` 实例。
+   - `new AzureOpenAIClient(new Uri(endpoint), credential)`：这使用端点和登录详情连接到 Azure OpenAI 实例，并将其转换为 `IChatClient` 实例。
 
 1. 在同一文件中，找到注释 `// Register all agents passed from Aspire`，在其正下方添加代码。这将从 Microsoft Foundry 项目中拉取智能体详情，并将它们作为单例服务注册到 IoC 容器中。
 
