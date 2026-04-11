@@ -26,20 +26,18 @@ You're writing a technical blog post with agents &ndash; research agent, outline
 
 ## Copy the start project
 
-1. If you already have the `workshop` directory, change the name to something else like `workshop-01`.
+1. If you already have the `workshop` directory, rename or remove it first.
 
-1. In your terminal, run the following command to copy the start project to the workshop directory.
+1. Run the setup script to copy the start project to the `workshop` directory.
 
     ```bash
     # zsh/bash
-    mkdir -p $REPOSITORY_ROOT/workshop && \
-        cp -a $REPOSITORY_ROOT/samples/01-sequential-pattern/start/. $REPOSITORY_ROOT/workshop/
+    bash $REPOSITORY_ROOT/scripts/setup.sh --session 01-sequential-pattern
     ```
 
     ```powershell
     # PowerShell
-    New-Item -Type Directory -Path $REPOSITORY_ROOT/workshop -Force && `
-        Copy-Item -Path $REPOSITORY_ROOT/samples/01-sequential-pattern/start/* -Destination $REPOSITORY_ROOT/workshop -Recurse -Force
+    & $REPOSITORY_ROOT/scripts/setup.ps1 -Session 01-sequential-pattern
     ```
 
 ## Deploy agents

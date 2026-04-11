@@ -2,9 +2,9 @@
 
 #:sdk Microsoft.NET.Sdk
 
-#:package Azure.AI.Projects@2.*
-#:package Azure.Identity@1.*
-#:package Microsoft.Extensions.Hosting@10.*
+#:package Azure.AI.Projects
+#:package Azure.Identity
+#:package Microsoft.Extensions.Hosting
 
 #:project ../MultiAgentWorkshop.Models/MultiAgentWorkshop.Models.csproj
 

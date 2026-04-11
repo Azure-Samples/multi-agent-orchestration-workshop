@@ -10,7 +10,6 @@ foundryName=$(azd env get-value FOUNDRY_NAME)
 foundryProjectName=$(azd env get-value FOUNDRY_PROJECT_NAME)
 foundryResourceGroup="rg-$(azd env get-value AZURE_ENV_NAME)"
 
-mcpTodoFqdn=$(azd env get-value AZURE_RESOURCE_MCP_TODO_FQDN)
 projectEndpoint=$(azd env get-value FOUNDRY_PROJECT_ENDPOINT)
 
 dotnet user-secrets --file "$REPOSITORY_ROOT/samples/02-concurrent-pattern/start/src/MultiAgentWorkshop.PromptAgent/create-agents.cs" set "AZURE_TENANT_ID" $tenantId
