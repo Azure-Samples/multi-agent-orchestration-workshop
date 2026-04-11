@@ -1,10 +1,10 @@
 # Multi-Agent Orchestration Workshop
 
-This is a workshop material to build .NET-based multi-agent apps using [Microsoft Agent Framework](https://aka.ms/agent-framework), [Microsoft Foundry](https://aka.ms/microsoft-foundry) with [Aspire](https://aspire.dev).
+This is workshop material for building .NET-based multi-agent apps using [Microsoft Agent Framework](https://aka.ms/agent-framework), [Microsoft Foundry](https://aka.ms/microsoft-foundry), and [Aspire](https://aspire.dev).
 
 ## What is this workshop for?
 
-Building a single-agent app is easy. But there are many real-world use cases that requires multiple agents working together, and building a multi-agent app is not as simple as building a single-agent one. [Microsoft Agent Framework](https://aka.ms/agent-framework) offers five multi-agent orchestration patterns:
+Building a single-agent app is easy. But there are many real-world use cases that require multiple agents working together, and building a multi-agent app is not as simple as building a single-agent one. [Microsoft Agent Framework](https://aka.ms/agent-framework) offers five multi-agent orchestration patterns:
 
 | Pattern                                                                                                                          | Description                                                |
 |----------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
@@ -16,12 +16,15 @@ Building a single-agent app is easy. But there are many real-world use cases tha
 
 ## Features
 
-In this workshop, we're building all multi-agent orchestration patterns except the Magentic pattern. Once you complete each pattern, you'll have the following architecture:
+In this workshop, we build all multi-agent orchestration patterns except the Magentic pattern. Once you complete each pattern, you'll have the following architecture:
 
 - [Blazor](https://blazor.net) frontend for chat UI
 - [ASP.NET](https://asp.net) backend with [Microsoft Agent Framework](https://aka.ms/agent-framework)
 - [Microsoft Foundry Agent Service](https://aka.ms/microsoft-foundry/agent-service) for agent hosting
 - [Aspire](https://aspire.dev) for cloud-native app orchestration
+
+> [!NOTE]
+> The .NET version of the Microsoft Agent Framework SDK will support the Magentic pattern in an upcoming release.
 
 ## Prerequisites
 
@@ -36,19 +39,19 @@ In this workshop, we're building all multi-agent orchestration patterns except t
 
 ## Workshop sessions
 
-| Session               | Document                                                         | Code Sample                                                               |
-|-----------------------|------------------------------------------------------------------|---------------------------------------------------------------------------|
-| 00 Setup              | [docs/00-setup.md](./docs/00-setup.md)                           |                                                                           |
-| 01 Sequential Pattern | [docs/01-sequential-pattern.md](./docs/01-sequential-pattern.md) | [samples/01-sequential-pattern](./samples/01-sequential-pattern) |
-| 02 Concurrent Pattern | [docs/02-concurrent-pattern.md](./docs/02-concurrent-pattern.md) | [samples/02-concurrent-pattern](./samples/02-concurrent-pattern) |
-| 03 Handoff Pattern    | [docs/03-handoff-pattern.md](./docs/03-handoff-pattern.md)       | [samples/03-handoff-pattern](./samples/03-handoff-pattern)       |
-| 04 Group Chat Pattern | [docs/04-group-chat-pattern.md](./docs/04-group-chat-pattern.md) | [samples/04-group-chat-pattern](./samples/04-group-chat-pattern) |
+| Session               | Document                                                    | Code Sample                                              |
+|-----------------------|-------------------------------------------------------------|----------------------------------------------------------|
+| 00 Setup              | [00-setup.md](./docs/00-setup.md)                           |                                                          |
+| 01 Sequential Pattern | [01-sequential-pattern.md](./docs/01-sequential-pattern.md) | [01-sequential-pattern](./samples/01-sequential-pattern) |
+| 02 Concurrent Pattern | [02-concurrent-pattern.md](./docs/02-concurrent-pattern.md) | [02-concurrent-pattern](./samples/02-concurrent-pattern) |
+| 03 Handoff Pattern    | [03-handoff-pattern.md](./docs/03-handoff-pattern.md)       | [03-handoff-pattern](./samples/03-handoff-pattern)       |
+| 04 Group Chat Pattern | [04-group-chat-pattern.md](./docs/04-group-chat-pattern.md) | [04-group-chat-pattern](./samples/04-group-chat-pattern) |
 
-## Use your local language!
+## Use your preferred language!
 
-This workshop materials support your local languages.
+This workshop material is available in the following languages.
 
-[English](./README.md) | [中文(简体)](./localization/zh-cn/README.md) | [Español](./localization/es/README.md) | [日本語](./localization/ja/README.md) | [한국어](./localization/ko/README.md)
+[English](./README.md) | [Español](./localization/es-es/README.md) | [日本語](./localization/ja-jp/README.md) | [한국어](./localization/ko-kr/README.md) | [Português](./localization/pt-br/README.md) | [中文(简体)](./localization/zh-cn/README.md)
 
 ## Resources
 
