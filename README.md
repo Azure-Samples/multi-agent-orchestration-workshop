@@ -2,6 +2,8 @@
 
 This is workshop material for building .NET-based multi-agent apps using [Microsoft Agent Framework](https://aka.ms/agent-framework), [Microsoft Foundry](https://aka.ms/microsoft-foundry), and [Aspire](https://aspire.dev).
 
+![MAF + Foundry workshop](./images/hero.jpg)
+
 ## What is this workshop for?
 
 Building a single-agent app is easy. But there are many real-world use cases that require multiple agents working together, and building a multi-agent app is not as simple as building a single-agent one. [Microsoft Agent Framework](https://aka.ms/agent-framework) offers five multi-agent orchestration patterns:
