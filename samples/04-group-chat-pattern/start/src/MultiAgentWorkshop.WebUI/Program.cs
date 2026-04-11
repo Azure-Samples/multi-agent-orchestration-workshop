@@ -18,16 +18,8 @@ builder.Services.AddRazorComponents()
 // Register all agents passed from Aspire
 
 // Register the backend agent service as an HTTP client
-builder.Services.AddHttpClient("agent", client =>
-{
-    client.BaseAddress = new Uri("https+http://agent");
-});
 
 // Register AGUI client
-builder.Services.AddChatClient(sp => new AGUIChatClient(
-    httpClient: sp.GetRequiredService<IHttpClientFactory>().CreateClient("agent"),
-    endpoint: "ag-ui")
-);
 
 var app = builder.Build();
 
