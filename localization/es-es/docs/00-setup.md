@@ -76,8 +76,8 @@ Para el taller, recomendamos encarecidamente usar GitHub Codespaces para ahorrar
    Podría ver un mensaje como el siguiente:
 
     ```text
-    You don't have write access to the Azure-Samples/maf-workshop-in-a-day-ko repository, so you cannot push changes to it.
-    To obtain write access we will point this codespace at your fork of Azure-Samples/maf-workshop-in-a-day-ko, creating that fork if it doesn't exist.
+    You don't have write access to the Azure-Samples/multi-agent-orchestration-workshop repository, so you cannot push changes to it.
+    To obtain write access we will point this codespace at your fork of Azure-Samples/multi-agent-orchestration-workshop, creating that fork if it doesn't exist.
     
     Would you like to proceed?
     ```
@@ -93,10 +93,10 @@ Para el taller, recomendamos encarecidamente usar GitHub Codespaces para ahorrar
    Esta vez, debería ver las siguientes cuatro líneas.
 
     ```text
-    origin  https://github.com/{{YOUR_GITHUB_ID}}/maf-workshop-in-a-day-ko.git (fetch)
-    origin  https://github.com/{{YOUR_GITHUB_ID}}/maf-workshop-in-a-day-ko.git (push)
-    upstream        https://github.com/Azure-Samples/maf-workshop-in-a-day-ko (fetch)
-    upstream        https://github.com/Azure-Samples/maf-workshop-in-a-day-ko (push)
+    origin  https://github.com/{{YOUR_GITHUB_ID}}/multi-agent-orchestration-workshop.git (fetch)
+    origin  https://github.com/{{YOUR_GITHUB_ID}}/multi-agent-orchestration-workshop.git (push)
+    upstream        https://github.com/Azure-Samples/multi-agent-orchestration-workshop (fetch)
+    upstream        https://github.com/Azure-Samples/multi-agent-orchestration-workshop (push)
     ```
 
    Si no ve esas cuatro líneas, elimine y vuelva a crear la instancia de GitHub Codespaces.
@@ -174,10 +174,10 @@ Si ya tiene una instancia de GitHub Codespaces, omita esta sección y vaya direc
    Debería ver las siguientes cuatro líneas.
 
     ```text
-    origin  https://github.com/{{YOUR_GITHUB_ID}}/maf-workshop-in-a-day-ko.git (fetch)
-    origin  https://github.com/{{YOUR_GITHUB_ID}}/maf-workshop-in-a-day-ko.git (push)
-    upstream        https://github.com/Azure-Samples/maf-workshop-in-a-day-ko (fetch)
-    upstream        https://github.com/Azure-Samples/maf-workshop-in-a-day-ko (push)
+    origin  https://github.com/{{YOUR_GITHUB_ID}}/multi-agent-orchestration-workshop.git (fetch)
+    origin  https://github.com/{{YOUR_GITHUB_ID}}/multi-agent-orchestration-workshop.git (push)
+    upstream        https://github.com/Azure-Samples/multi-agent-orchestration-workshop (fetch)
+    upstream        https://github.com/Azure-Samples/multi-agent-orchestration-workshop (push)
     ```
 
 1. Abra el repositorio en VS Code.
