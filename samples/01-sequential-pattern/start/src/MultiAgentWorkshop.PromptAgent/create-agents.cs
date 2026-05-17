@@ -34,21 +34,21 @@ var config = new ConfigurationBuilder()
 var foundry = config.GetSection("Foundry").Get<FoundrySettings>() ?? throw new InvalidOperationException("Foundry settings are not configured");
 var project = foundry.Project ?? throw new InvalidOperationException("Foundry project settings are not configured");
 var endpoint = project.Endpoint ?? throw new InvalidOperationException("Project endpoint is not configured");
-var model = project.Model ?? "gpt-5-mini";
+var model = project.Model ?? throw new InvalidOperationException("Project model is not configured");
 var agents = project.Agents ?? throw new InvalidOperationException("Agents are not configured");
 
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
 var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
 var agentClient = projectClient.AgentAdministrationClient;
 
-foreach (var agentSettings in agents)
+foreach (var agentName in agents)
 {
-    var instruction = await File.ReadAllTextAsync(Path.Combine(GetScriptDirectory(), $"{agentSettings.Name}.txt"));
+    var instruction = await File.ReadAllTextAsync(Path.Combine(GetScriptDirectory(), $"{agentName}.txt"));
     var definition = ProjectsAgentDefinition.CreatePromptAgentDefinition(model)
                                             .AddInstruction(instruction);
 
     var agent = await agentClient.CreateAgentVersionAsync(
-        agentName: agentSettings.Name,
+        agentName: agentName,
         options: new ProjectsAgentVersionCreationOptions(definition));
 
     Console.WriteLine($"Agent created (id: {agent.Value.Id}, name: {agent.Value.Name}, version: {agent.Value.Version})");

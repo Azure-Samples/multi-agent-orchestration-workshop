@@ -1,8 +1,6 @@
 ﻿@page "/"
-@using System.ComponentModel
-@using MultiAgentWorkshop.Models.Configuration
 @inject IChatClient ChatClient
-@inject IEnumerable<AgentSettings> Agents
+@inject IEnumerable<string> AgentNames
 @inject ILogger<Chat> Logger
 @implements IDisposable
 
@@ -39,7 +37,7 @@
 
     protected override void OnInitialized()
     {
-        agentNames = Agents.Select(a => a.Name!);
+        agentNames = AgentNames;
         statefulMessageCount = 0;
         messages.Add(new(ChatRole.System, SystemPrompt));
         chatOptions.Tools = [];

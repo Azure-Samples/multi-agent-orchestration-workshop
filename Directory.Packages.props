@@ -7,12 +7,12 @@
 
   <ItemGroup>
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.*-*" />
-    <PackageVersion Include="Azure.AI.Projects" Version="2.*" />
+    <PackageVersion Include="Azure.AI.Projects" Version="2.*-*" />
     <PackageVersion Include="Azure.Identity" Version="1.*" />
     <PackageVersion Include="Microsoft.Agents.AI" Version="1.*" />
     <PackageVersion Include="Microsoft.Agents.AI.AGUI" Version="1.*-*" />
-    <PackageVersion Include="Microsoft.Agents.AI.AzureAI" Version="1.*-*" />
     <PackageVersion Include="Microsoft.Agents.AI.DevUI" Version="1.*-*" />
+    <PackageVersion Include="Microsoft.Agents.AI.Foundry" Version="1.*-*" />
     <PackageVersion Include="Microsoft.Agents.AI.Hosting" Version="1.*-*" />
     <PackageVersion Include="Microsoft.Agents.AI.Hosting.AGUI.AspNetCore" Version="1.*-*" />
     <PackageVersion Include="Microsoft.Agents.AI.Hosting.OpenAI" Version="1.*-*" />

@@ -38,4 +38,6 @@ find "$WORKSHOP_DIR" -name "post-deploy.*" -type f | while read -r file; do
     rm -f "$file.bak"
 done
 
+dotnet user-secrets --project $WORKSHOP_DIR/src/MultiAgentWorkshop.AppHost clear
+
 echo "Workshop directory is ready at: $WORKSHOP_DIR"

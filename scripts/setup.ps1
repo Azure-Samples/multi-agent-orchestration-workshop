@@ -22,4 +22,6 @@ Get-ChildItem -Path $WORKSHOP_DIR -Filter "post-deploy.*" -Recurse | ForEach-Obj
     (Get-Content $_.FullName -Raw) -replace "samples/$Session/start", 'workshop' | Set-Content $_.FullName -NoNewline
 }
 
+dotnet user-secrets --project $WORKSHOP_DIR/src/MultiAgentWorkshop.AppHost clear
+
 Write-Host "Workshop directory is ready at: $WORKSHOP_DIR"

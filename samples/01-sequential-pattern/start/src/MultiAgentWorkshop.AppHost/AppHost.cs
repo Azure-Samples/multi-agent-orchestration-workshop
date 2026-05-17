@@ -1,7 +1,5 @@
 using MultiAgentWorkshop.AppHost.Extensions;
 
-using Projects;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add resource for Microsoft Foundry
