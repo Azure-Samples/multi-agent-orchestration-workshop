@@ -10,16 +10,12 @@ using Microsoft.Extensions.AI;
 
 using MultiAgentWorkshop.Agent.Extensions;
 using MultiAgentWorkshop.Agent.Infrastructure;
-using MultiAgentWorkshop.Models.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
-var foundry = config.GetSection("Foundry").Get<FoundrySettings>() ?? throw new InvalidOperationException("Foundry settings are not configured");
-var project = foundry.Project ?? throw new InvalidOperationException("Foundry project settings are not configured");
-var endpoint = project.Endpoint ?? throw new InvalidOperationException("Missing Foundry Endpoint");
-var model = project.Model ?? throw new InvalidOperationException("Missing Foundry Model");
-var agents = project.Agents ?? throw new InvalidOperationException("Missing Foundry Agents configuration");
+
+var (endpoint, deploymentName, agentNames) = config.GetAgentDetails("foundry");
 
 builder.AddServiceDefaults();
 
@@ -31,6 +27,7 @@ builder.AddServiceDefaults();
 
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
+builder.Services.AddDevUI();
 
 builder.Services.AddAGUI();
 

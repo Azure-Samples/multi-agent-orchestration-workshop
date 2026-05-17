@@ -1,4 +1,3 @@
-using Azure.AI.Extensions.OpenAI;
 using Azure.AI.Projects;
 using Azure.Identity;
 
@@ -9,40 +8,32 @@ using Microsoft.Agents.AI.Hosting.AGUI.AspNetCore;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 
-using MultiAgentWorkshop.Agent.Infrastructure;
-using MultiAgentWorkshop.Models.Configuration;
+using MultiAgentWorkshop.Agent.Extensions;
 
 using OpenAI.Chat;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
-var foundry = config.GetSection("Foundry").Get<FoundrySettings>() ?? throw new InvalidOperationException("Foundry settings are not configured");
-var project = foundry.Project ?? throw new InvalidOperationException("Foundry project settings are not configured");
-var endpoint = project.Endpoint ?? throw new InvalidOperationException("Missing Foundry Endpoint");
-var model = project.Model ?? throw new InvalidOperationException("Missing Foundry Model");
-var agents = project.Agents ?? throw new InvalidOperationException("Missing Foundry Agents configuration");
+
+var (endpoint, deploymentName, agentNames) = config.GetAgentDetails("foundry");
 
 builder.AddServiceDefaults();
 
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
-var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
-
-foreach (var agentSettings in agents)
+var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
+foreach (var agentName in agentNames!)
 {
-    var agentReference = new AgentReference(agentSettings.Name, agentSettings.Version);
+    var agentRecord = await projectClient.AgentAdministrationClient
+                                         .GetAgentAsync(agentName);
+    var agent = projectClient.AsAIAgent(agentRecord);
 
-    var agent = projectClient.AsAIAgent(
-        agentReference: agentReference,
-        clientFactory: inner => new AgentRecordShimChatClient(inner)
-    );
-
-    builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
+    builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent);
 }
 
 builder.AddWorkflow("publisher", (sp, key) =>
 {
-    var participants = agents.Select(a => sp.GetRequiredKeyedService<AIAgent>(a.Name));
+    var participants = agentNames!.Select(name => sp.GetRequiredKeyedService<AIAgent>(name));
 
     return AgentWorkflowBuilder.CreateGroupChatBuilderWith(agentList =>
                new RoundRobinGroupChatManager(agentList) { MaximumIterationCount = participants.Count() * 2 })
@@ -53,6 +44,7 @@ builder.AddWorkflow("publisher", (sp, key) =>
 
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
+builder.Services.AddDevUI();
 
 builder.Services.AddAGUI();
 

@@ -10,16 +10,12 @@ using Microsoft.Extensions.AI;
 
 using MultiAgentWorkshop.Agent.Extensions;
 using MultiAgentWorkshop.Agent.Infrastructure;
-using MultiAgentWorkshop.Models.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
-var foundry = config.GetSection("Foundry").Get<FoundrySettings>() ?? throw new InvalidOperationException("Foundry settings are not configured");
-var project = foundry.Project ?? throw new InvalidOperationException("Foundry project settings are not configured");
-var endpoint = project.Endpoint ?? throw new InvalidOperationException("Missing Foundry Endpoint");
-var model = project.Model ?? throw new InvalidOperationException("Missing Foundry Model");
-var agents = project.Agents ?? throw new InvalidOperationException("Missing Foundry Agents configuration");
+
+var (endpoint, deploymentName, agentNames) = config.GetAgentDetails("foundry");
 
 builder.AddServiceDefaults();
 
@@ -28,21 +24,21 @@ var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() 
 // For the handoff pattern, use ChatClientAgent instead of Foundry prompt agents.
 // Foundry prompt agents don't support dynamically injected handoff tools at invocation time.
 // ChatClientAgent allows the framework to inject handoff_to_* tools via ChatOptions.Tools.
-var chatClient = new AzureOpenAIClient(new Uri(endpoint), credential)
+var chatClient = new AzureOpenAIClient(new Uri(endpoint!), credential)
                      .GetResponsesClient()
-                     .AsIChatClient(model);
+                     .AsIChatClient(deploymentName!);
 
-foreach (var agentSettings in agents)
+foreach (var agentName in agentNames!)
 {
     var instruction = await File.ReadAllTextAsync(
-        Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentSettings.Name}.txt"));
+        Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentName}.txt"));
 
     var agent = new ChatClientAgent(
         chatClient,
         instructions: instruction,
-        name: agentSettings.Name);
+        name: agentName);
 
-    builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
+    builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent);
 }
 
 builder.AddWorkflow("publisher", (sp, key) =>
@@ -74,6 +70,7 @@ builder.AddWorkflow("publisher", (sp, key) =>
 
 builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
+builder.Services.AddDevUI();
 
 builder.Services.AddAGUI();
 
