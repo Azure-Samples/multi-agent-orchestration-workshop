@@ -55,22 +55,10 @@ IT 지원 팀에서 에이전트를 사용하여 작업합니다 &ndash; 일반 
       ...
       // 에이전트 추가
       "Agents": [
-        {
-          "Name": "triage-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "general-support-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "network-specialist-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "warranty-agent",
-          "Version": "1"
-        }
+        "triage-agent",
+        "general-support-agent",
+        "network-specialist-agent",
+        "warranty-agent"
       ]
       ...
     }
@@ -146,22 +134,10 @@ IT 지원 팀에서 에이전트를 사용하여 작업합니다 &ndash; 일반 
       ...
       // 에이전트 추가
       "Agents": [
-        {
-          "Name": "triage-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "general-support-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "network-specialist-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "warranty-agent",
-          "Version": "1"
-        }
+        "triage-agent",
+        "general-support-agent",
+        "network-specialist-agent",
+        "warranty-agent"
       ]
       ...
     }
@@ -171,54 +147,59 @@ IT 지원 팀에서 에이전트를 사용하여 작업합니다 &ndash; 일반 
 
     ```csharp
     // Microsoft Foundry 리소스 추가
-    var foundry = builder.AddFoundry("foundry");
+    var foundry = builder.AddFoundryConnectionString("foundry");
     ```
 
    코드를 분석해 봅시다.
 
-   - `builder.AddFoundry("foundry")`: 커스텀 리소스 `FoundryResource`를 통해 Microsoft Foundry 연결 정보를 추가합니다. Aspire 커스텀 리소스에 대해 자세히 알고 싶다면 [커스텀 호스팅 통합 만들기](https://aspire.dev/integrations/custom-integrations/hosting-integrations/)를 참고하세요.
+   - `builder.AddFoundryConnectionString("foundry")`: 확장 메서드 `AddFoundryConnectionString()`을 통해 Microsoft Foundry 연결 문자열을 추가합니다.
 
 1. 같은 파일에서 `// Add resource for agents on Microsoft Foundry` 주석을 찾아 바로 아래에 코드를 추가합니다. 이 코드는 에이전트 세부 정보 목록을 참조하는 애플리케이션에 노출합니다.
 
     ```csharp
     // Microsoft Foundry의 에이전트 리소스 추가
-    var agents = builder.AddAgents("agents");
+    var agents = builder.AddFoundryAgentsConnectionString("agents");
     ```
 
    코드를 분석해 봅시다.
 
-   - `builder.AddAgents("agents")`: 커스텀 리소스 `AgentResource`를 통해 에이전트 세부 정보 목록을 추가합니다. Aspire 커스텀 리소스에 대해 자세히 알고 싶다면 [커스텀 호스팅 통합 만들기](https://aspire.dev/integrations/custom-integrations/hosting-integrations/)를 참고하세요.
+   - `builder.AddFoundryAgentsConnectionString("agents")`: 확장 메서드 `AddFoundryAgentsConnectionString()`을 통해 에이전트 세부 정보 목록을 추가합니다.
 
 1. 같은 파일에서 `// Add backend agent service` 주석을 찾아 바로 아래에 코드를 추가합니다. 이 코드는 `foundry` 리소스를 참조하는 백엔드 에이전트 서비스를 정의합니다 — 모든 Microsoft Foundry 연결 정보가 백엔드 에이전트 서비스 앱으로 전달됩니다.
 
     ```csharp
     // 백엔드 에이전트 서비스 추가
-    var agent = builder.AddProject<MultiAgentWorkshop_Agent>("agent")
-                       .WithReference(foundry);
+    var agent = builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")
+                       .WithReference(foundry)
+                       .WaitFor(foundry);
     ```
 
    코드를 분석해 봅시다.
 
-   - `builder.AddProject<MultiAgentWorkshop_Agent>("agent")`: 백엔드 에이전트 서비스 앱을 .NET 프로젝트로 추가합니다.
-   - `.WithReference(foundry)`: 위에서 생성한 foundry 리소스를 참조하여 Microsoft Foundry 연결 정보를 백엔드 에이전트 서비스 앱으로 전달합니다.
+   - `builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")`: 백엔드 에이전트 서비스 앱을 .NET 프로젝트로 추가합니다.
+   - `.WithReference(foundry)`: 위에서 생성한 foundry 연결 문자열 리소스를 참조하여 Microsoft Foundry 연결 정보를 백엔드 에이전트 서비스 앱으로 전달합니다.
+   - `.WaitFor(foundry)`: 종속성 활성화 순서를 유지하여 `foundry` 연결 리소스가 실행 중일 때까지 이 `agent` 프로젝트 리소스가 활성화되지 않도록 합니다.
 
 1. 같은 파일에서 `// Add frontend web UI` 주석을 찾아 바로 아래에 코드를 추가합니다. 이 코드는 `agents`와 `agent` 리소스를 모두 참조하는 프론트엔드 웹 UI를 정의합니다 — 에이전트 세부 정보와 백엔드 연결 정보가 모두 프론트엔드 웹 UI 앱으로 전달됩니다.
 
     ```csharp
     // 프론트엔드 웹 UI 추가
-    var webUI = builder.AddProject<MultiAgentWorkshop_WebUI>("webui")
+    var webUI = builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")
                        .WithExternalHttpEndpoints()
                        .WithReference(agents)
                        .WithReference(agent)
+                       .WaitFor(agents)
                        .WaitFor(agent);
     ```
 
    코드를 분석해 봅시다.
 
-   - `builder.AddProject<MultiAgentWorkshop_WebUI>("webui")`: 프론트엔드 웹 UI 앱을 .NET 프로젝트로 추가합니다.
+   - `builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")`: 프론트엔드 웹 UI 앱을 .NET 프로젝트로 추가합니다.
    - `.WithExternalHttpEndpoints()`: 이 프론트엔드 웹 UI 앱을 인터넷에 노출하여 공개적으로 접근할 수 있게 합니다.
-   - `.WithReference(agents)`: 위에서 생성한 에이전트 리소스를 참조하여 에이전트 목록을 프론트엔드 웹 UI 앱으로 전달합니다.
+   - `.WithReference(agents)`: 위에서 생성한 에이전트 연결 문자열 리소스를 참조하여 에이전트 목록을 프론트엔드 웹 UI 앱으로 전달합니다.
    - `.WithReference(agent)`: 백엔드 에이전트 서비스 앱을 참조하여 연결 정보를 프론트엔드 웹 UI 앱으로 전달합니다.
+   - `.WaitFor(agents)`: 종속성 활성화 순서를 유지하여 `agents` 연결 리소스가 실행 중일 때까지 이 `webui` 프로젝트 리소스가 활성화되지 않도록 합니다.
+   - `.WaitFor(agent)`: 종속성 활성화 순서를 유지하여 `agent` 프로젝트 리소스가 실행 중일 때까지 이 `webui` 프로젝트 리소스가 활성화되지 않도록 합니다.
 
 ## 백엔드 에이전트 서비스에서 Handoff 패턴 구현하기
 
@@ -233,32 +214,36 @@ IT 지원 팀에서 에이전트를 사용하여 작업합니다 &ndash; 일반 
     ```csharp
     // EntraID 인증으로 AzureOpenAIClient 인스턴스 생성
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
+    var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
 
-    var chatClient = new AzureOpenAIClient(new Uri(endpoint), credential)
-                        .GetResponsesClient()
-                        .AsIChatClient(model);
+    var chatClient = projectClient.ProjectOpenAIClient
+                                  .GetResponsesClient()
+                                  .AsIChatClient(deploymentName!);
     ```
 
    코드를 분석해 봅시다.
 
    - `new DefaultAzureCredential(...)`: API 키 없이 Azure에 로그인합니다. 로컬 머신에서는 Azure CLI 또는 Azure Developer CLI 로그인 정보를 사용하고, Azure에 앱이 배포되면 Managed Identity를 사용합니다.
-   - `new AzureOpenAIClient(new Uri(endpoint), credential)`: 엔드포인트와 로그인 정보를 사용하여 Azure OpenAI 인스턴스에 연결하고 `IChatClient` 인스턴스로 변환합니다.
+   - `new AIProjectClient(endpoint, credential)`: 엔드포인트와 로그인 정보를 사용하여 Microsoft Foundry 프로젝트 인스턴스에 연결합니다.
+   - `projectClient.ProjectOpenAIClient.GetResponsesClient().AsIChatClient(deploymentName)`: Azure OpenAI 인스턴스에 연결하고 `IChatClient` 인스턴스로 변환합니다.
+
+     이 워크숍 시점에서 Microsoft Foundry Prompt Agent는 아직 Handoff 오케스트레이션 패턴을 지원하지 않는다는 점에 주목하세요. 따라서 에이전트는 앱 내에서 직접 재정의되어야 합니다.
 
 1. 같은 파일에서 `// Register all agents passed from Aspire` 주석을 찾아 바로 아래에 코드를 추가합니다. 이 코드는 Microsoft Foundry 프로젝트에서 에이전트 세부 정보를 가져와 IoC 컨테이너에 싱글톤 서비스로 등록합니다.
 
     ```csharp
     // Aspire에서 전달된 모든 에이전트 등록
-    foreach (var agentSettings in agents)
+    foreach (var agentName in agentNames!)
     {
         var instruction = await File.ReadAllTextAsync(
-            Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentSettings.Name}.txt"));
+            Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentName}.txt"));
 
         var agent = new ChatClientAgent(
             chatClient,
             instructions: instruction,
-            name: agentSettings.Name);
+            name: agentName);
 
-        builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
+        builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent);
     }
     ```
 
@@ -267,7 +252,7 @@ IT 지원 팀에서 에이전트를 사용하여 작업합니다 &ndash; 일반 
    - 에이전트 목록은 이미 알고 있지만 이름만 알고 있으므로, 코드는 각 에이전트에 대해 `foreach` 루프를 실행합니다.
    - `await File.ReadAllTextAsync(...)`: 에이전트 지시 사항 파일을 가져옵니다.
    - `new ChatClientAgent(chatClient, instructions, name)`: 각 에이전트의 정보, 지시 사항, `IChatClient` 인스턴스를 사용하여 에이전트 인스턴스를 생성합니다.
-   - `builder.Services.AddKeyedSingleton<AIAgent>(name, agent)`: 에이전트 인스턴스를 싱글톤 서비스로 등록합니다.
+   - `builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent)`: 에이전트 인스턴스를 싱글톤 서비스로 등록합니다.
 
 1. 같은 파일에서 `// Build a handoff workflow pattern with the agents registered` 주석을 찾아 바로 아래에 코드를 추가합니다.
 
@@ -338,7 +323,7 @@ IT 지원 팀에서 에이전트를 사용하여 작업합니다 &ndash; 일반 
 
     ```csharp
     // Aspire에서 전달된 모든 에이전트 등록
-    builder.Services.AddSingleton(agents);
+    builder.Services.AddSingleton(agentNames!);
     ```
 
 1. 같은 파일에서 `// Register the backend agent service as an HTTP client` 주석을 찾아 바로 아래에 코드를 추가합니다. Aspire가 이미 프론트엔드 웹 UI 앱에 백엔드 에이전트 서비스의 연결 정보를 제공합니다.

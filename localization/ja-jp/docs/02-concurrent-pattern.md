@@ -55,26 +55,11 @@ Concurrent パターンでは、複数のエージェントが同じ入力を同
       ...
       // エージェントを追加
       "Agents": [
-        {
-          "Name": "market-analysis-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "technology-feasibility-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "financial-model-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "risk-assessment-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "aggregator-agent",
-          "Version": "1"
-        }
+        "market-analysis-agent",
+        "technology-feasibility-agent",
+        "financial-model-agent",
+        "risk-assessment-agent",
+        "aggregator-agent"
       ]
       ...
     }
@@ -151,26 +136,11 @@ Concurrent パターンでは、複数のエージェントが同じ入力を同
       ...
       // エージェントを追加
       "Agents": [
-        {
-          "Name": "market-analysis-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "technology-feasibility-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "financial-model-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "risk-assessment-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "aggregator-agent",
-          "Version": "1"
-        }
+        "market-analysis-agent",
+        "technology-feasibility-agent",
+        "financial-model-agent",
+        "risk-assessment-agent",
+        "aggregator-agent"
       ]
       ...
     }
@@ -180,54 +150,59 @@ Concurrent パターンでは、複数のエージェントが同じ入力を同
 
     ```csharp
     // Microsoft Foundry のリソースを追加
-    var foundry = builder.AddFoundry("foundry");
+    var foundry = builder.AddFoundryConnectionString("foundry");
     ```
 
    コードの解説です。
 
-   - `builder.AddFoundry("foundry")`: カスタム リソース `FoundryResource` を通じて Microsoft Foundry の接続詳細を追加します。Aspire のカスタム リソースについて詳しく知りたい場合は、[カスタム ホスティング統合の作成](https://aspire.dev/integrations/custom-integrations/hosting-integrations/) をご覧ください。
+   - `builder.AddFoundryConnectionString("foundry")`: 拡張メソッド `AddFoundryConnectionString()` を通じて Microsoft Foundry の接続文字列を追加します。
 
 1. 同じファイルで、コメント `// Add resource for agents on Microsoft Foundry` を見つけて、そのすぐ下にコードを追加します。これにより、エージェントの詳細リストが参照アプリケーションに公開されます。
 
     ```csharp
     // Microsoft Foundry 上のエージェントのリソースを追加
-    var agents = builder.AddAgents("agents");
+    var agents = builder.AddFoundryAgentsConnectionString("agents");
     ```
 
    コードの解説です。
 
-   - `builder.AddAgents("agents")`: カスタム リソース `AgentResource` を通じてエージェントの詳細リストを追加します。Aspire のカスタム リソースについて詳しく知りたい場合は、[カスタム ホスティング統合の作成](https://aspire.dev/integrations/custom-integrations/hosting-integrations/) をご覧ください。
+   - `builder.AddFoundryAgentsConnectionString("agents")`: 拡張メソッド `AddFoundryAgentsConnectionString()` を通じてエージェントの詳細リストを追加します。
 
 1. 同じファイルで、コメント `// Add backend agent service` を見つけて、そのすぐ下にコードを追加します。これにより、`foundry` リソースを参照するバックエンド エージェント サービスが定義されます — すべての Microsoft Foundry 接続詳細がバックエンド エージェント サービス アプリに渡されます。
 
     ```csharp
     // バックエンド エージェント サービスを追加
-    var agent = builder.AddProject<MultiAgentWorkshop_Agent>("agent")
-                       .WithReference(foundry);
+    var agent = builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")
+                       .WithReference(foundry)
+                       .WaitFor(foundry);
     ```
 
    コードの解説です。
 
-   - `builder.AddProject<MultiAgentWorkshop_Agent>("agent")`: バックエンド エージェント サービス アプリを .NET プロジェクトとして追加します。
-   - `.WithReference(foundry)`: 上で作成した foundry リソースを参照し、Microsoft Foundry の接続詳細をバックエンド エージェント サービス アプリに渡します。
+   - `builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")`: バックエンド エージェント サービス アプリを .NET プロジェクトとして追加します。
+   - `.WithReference(foundry)`: 上で作成した foundry 接続文字列リソースを参照し、Microsoft Foundry の接続詳細をバックエンド エージェント サービス アプリに渡します。
+   - `.WaitFor(foundry)`: 依存関係のアクティブ化順序を維持し、`foundry` 接続リソースが起動して実行されるまで、この `agent` プロジェクト リソースがアクティブ化されないようにします。
 
 1. 同じファイルで、コメント `// Add frontend web UI` を見つけて、そのすぐ下にコードを追加します。これにより、`agents` と `agent` の両方のリソースを参照するフロントエンド Web UI が定義されます — エージェントの詳細とバックエンドの接続詳細の両方がフロントエンド Web UI アプリに渡されます。
 
     ```csharp
     // フロントエンド Web UI を追加
-    var webUI = builder.AddProject<MultiAgentWorkshop_WebUI>("webui")
+    var webUI = builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")
                        .WithExternalHttpEndpoints()
                        .WithReference(agents)
                        .WithReference(agent)
+                       .WaitFor(agents)
                        .WaitFor(agent);
     ```
 
    コードの解説です。
 
-   - `builder.AddProject<MultiAgentWorkshop_WebUI>("webui")`: フロントエンド Web UI アプリを .NET プロジェクトとして追加します。
+   - `builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")`: フロントエンド Web UI アプリを .NET プロジェクトとして追加します。
    - `.WithExternalHttpEndpoints()`: このフロントエンド Web UI アプリをインターネットに公開し、パブリック アクセス可能にします。
-   - `.WithReference(agents)`: 上で作成した agent リソースを参照し、エージェントのリストをフロントエンド Web UI アプリに渡します。
+   - `.WithReference(agents)`: 上で作成した agents 接続文字列リソースを参照し、エージェントのリストをフロントエンド Web UI アプリに渡します。
    - `.WithReference(agent)`: バックエンド エージェント サービス アプリを参照し、接続詳細をフロントエンド Web UI アプリに渡します。
+   - `.WaitFor(agents)`: 依存関係のアクティブ化順序を維持し、`agents` 接続リソースが起動して実行されるまで、この `webui` プロジェクト リソースがアクティブ化されないようにします。
+   - `.WaitFor(agent)`: 依存関係のアクティブ化順序を維持し、`agent` プロジェクト リソースが起動して実行されるまで、この `webui` プロジェクト リソースがアクティブ化されないようにします。
 
 ## バックエンド エージェント サービスへの Concurrent パターンの実装
 
@@ -242,7 +217,7 @@ Concurrent パターンでは、複数のエージェントが同じ入力を同
     ```csharp
     // EntraID 認証で AIProjectClient インスタンスを作成
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
-    var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
+    var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
     ```
 
    コードの解説です。
@@ -254,38 +229,33 @@ Concurrent パターンでは、複数のエージェントが同じ入力を同
 
     ```csharp
     // Aspire から渡されたすべてのエージェントを登録
-    foreach (var agentSettings in agents)
+    foreach (var agentName in agentNames!)
     {
-        var agentReference = new AgentReference(agentSettings.Name, agentSettings.Version);
+        var agentRecord = await projectClient.AgentAdministrationClient
+                                             .GetAgentAsync(agentName);
+        var agent = projectClient.AsAIAgent(agentRecord);
 
-        var agent = projectClient.AsAIAgent(
-            agentReference: agentReference,
-            clientFactory: inner => new AgentRecordShimChatClient(inner)
-        );
-
-        builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
+        builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent);
     }
     ```
 
    コードの解説です。
 
    - エージェントのリストは既に分かっていますが、名前のみ分かっています。そのため、コードは各エージェントに対して `foreach` ループを実行します。
-   - `new AgentReference(name, version)`: 各エージェントの情報を使用して参照インスタンスを作成します。
-   - `projectClient.AsAIAgent(reference, factory)`: 参照の詳細を使用して実際のエージェントに接続します。
-   - `builder.Services.AddKeyedSingleton<AIAgent>(name, agent)`: エージェント インスタンスをシングルトン サービスとして登録します。
-
-   > **注意**: `AgentRecordShimChatClient` クラスにお気づきかもしれません。これは Microsoft Agent Framework と Microsoft Foundry SDK 間のバージョンの不一致に対する一時的な回避策であり、まもなく削除される予定です。
+   - `projectClient.AgentAdministrationClient.GetAgentAsync(agentName)`: 各エージェントの情報を使用して `ProjectsAgentRecord` インスタンスを作成します。
+   - `projectClient.AsAIAgent(agentRecord)`: 参照の詳細を使用して実際のエージェントに接続します。
+   - `builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent)`: エージェント インスタンスをシングルトン サービスとして登録します。
 
 1. 同じファイルで、コメント `// Build a concurrent workflow pattern with the agents registered` を見つけて、そのすぐ下にコードを追加します。
 
     ```csharp
     // 登録されたエージェントで Concurrent ワークフロー パターンを構築
-    var concurrentAgents = agents.Where(a => a.Name != "aggregator-agent");
-    var aggregatorAgent = agents.SingleOrDefault(a => a.Name == "aggregator-agent");
+    var concurrentAgentNames = agentNames!.Where(name => name != "aggregator-agent");
+    var aggregatorAgentName = agentNames!.SingleOrDefault(name => name == "aggregator-agent");
 
     builder.AddWorkflow("concurrent-analysis", (sp, key) => AgentWorkflowBuilder.BuildConcurrent(
         workflowName: key,
-        agents: [.. concurrentAgents.Select(a => sp.GetRequiredKeyedService<AIAgent>(a.Name))],
+        agents: [.. concurrentAgentNames.Select(name => sp.GetRequiredKeyedService<AIAgent>(name))],
         aggregator: null
     )).AddAsAIAgent("concurrent-analysis");
 
@@ -293,7 +263,7 @@ Concurrent パターンでは、複数のエージェントが同じ入力を同
         workflowName: key,
         agents: [
             sp.GetRequiredKeyedService<AIAgent>("concurrent-analysis"),
-            sp.GetRequiredKeyedService<AIAgent>(aggregatorAgent!.Name)
+            sp.GetRequiredKeyedService<AIAgent>(aggregatorAgentName!)
         ]
     )).AddAsAIAgent("publisher");
     ```
@@ -301,15 +271,13 @@ Concurrent パターンでは、複数のエージェントが同じ入力を同
    コードの解説です。
 
    - `builder.AddWorkflow("concurrent-analysis", ...).AddAsAIAgent("concurrent-analysis")`: マルチエージェント ワークフローを `concurrent-analysis` という名前の別のエージェント インスタンスとして追加し、シングルトンとして登録します。
-   - `AgentWorkflowBuilder.BuildConcurrent(...)`: 同じ名前 `concurrent-analysis` を使用する Concurrent ワークフロー ビルダーです。
+   - `AgentWorkflowBuilder.BuildConcurrent(...)`: 同じ名前 `concurrent-analysis` を使用する Concurrent ワークフロー ビルダーです。`agentNames` 配列で宣言された、以前に登録されたサービスから複数のエージェントを追加します。
 
-     `agents` 配列で宣言された、以前に登録されたサービスから複数のエージェントが追加されることに注意してください。
-
-     また、Microsoft Foundry が提供する `aggregator-agent` を代わりに使用するため、アグリゲーターに `null` を渡していることに注意してください。
+     Microsoft Foundry が提供する `aggregator-agent` を代わりに使用するため、アグリゲーターに `null` を渡していることに注意してください。
    - `builder.AddWorkflow("publisher, ...).AddAsAIAgent("publisher")`: マルチエージェント ワークフローを `publisher` という名前の別のエージェント インスタンスとして追加し、シングルトンとして登録します。
    - `AgentWorkflowBuilder.BuildSequential(...)`: 同じ名前 `publisher` を使用する Sequential ワークフロー ビルダーです。
 
-     `concurrent-analysis` ワークフローと `aggregator-agent` の両方を追加して、アグリゲーター エージェントが Concurrent ワークフローで各エージェントが応答した内容をまとめることに注意してください。
+     `concurrent-analysis` ワークフローと `aggregator-agent` エージェントの両方を追加して、アグリゲーター エージェントが Concurrent ワークフローで各エージェントが応答した内容をまとめることに注意してください。
 
 1. 同じファイルで、コメント `// Map AGUI to the publisher workflow agent` を見つけて、そのすぐ下にコードを追加します。ワークフローは `ag-ui` の API エンドポイントとして公開され、フロントエンド Web UI がこのバックエンド エージェント サービス アプリと通信できるようになります。
 
@@ -333,7 +301,7 @@ Concurrent パターンでは、複数のエージェントが同じ入力を同
 
     ```csharp
     // Aspire から渡されたすべてのエージェントを登録
-    builder.Services.AddSingleton(agents);
+    builder.Services.AddSingleton(agentNames!);
     ```
 
 1. 同じファイルで、コメント `// Register the backend agent service as an HTTP client` を見つけて、そのすぐ下にコードを追加します。Aspire は既にフロントエンド Web UI アプリにバックエンド エージェント サービスの接続詳細を提供しています。

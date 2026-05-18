@@ -55,22 +55,10 @@ Você trabalha em uma equipe de suporte de TI com agentes &ndash; agente de supo
       ...
       // Adicionar agentes
       "Agents": [
-        {
-          "Name": "triage-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "general-support-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "network-specialist-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "warranty-agent",
-          "Version": "1"
-        }
+        "triage-agent",
+        "general-support-agent",
+        "network-specialist-agent",
+        "warranty-agent"
       ]
       ...
     }
@@ -146,22 +134,10 @@ Você trabalha em uma equipe de suporte de TI com agentes &ndash; agente de supo
       ...
       // Adicionar agentes
       "Agents": [
-        {
-          "Name": "triage-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "general-support-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "network-specialist-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "warranty-agent",
-          "Version": "1"
-        }
+        "triage-agent",
+        "general-support-agent",
+        "network-specialist-agent",
+        "warranty-agent"
       ]
       ...
     }
@@ -171,54 +147,59 @@ Você trabalha em uma equipe de suporte de TI com agentes &ndash; agente de supo
 
     ```csharp
     // Adicionar recurso para Microsoft Foundry
-    var foundry = builder.AddFoundry("foundry");
+    var foundry = builder.AddFoundryConnectionString("foundry");
     ```
 
    Vamos analisar o código.
 
-   - `builder.AddFoundry("foundry")`: Isso adiciona os detalhes de conexão do Microsoft Foundry por meio de um recurso personalizado, `FoundryResource`. Se você quiser saber mais sobre o recurso personalizado do Aspire, visite [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/).
+   - `builder.AddFoundryConnectionString("foundry")`: Isso adiciona a string de conexão do Microsoft Foundry por meio do método de extensão `AddFoundryConnectionString()`.
 
 1. No mesmo arquivo, encontre o comentário `// Add resource for agents on Microsoft Foundry` e adicione o código logo abaixo dele. Isso expõe a lista de detalhes dos agentes para a aplicação que o referencia.
 
     ```csharp
     // Adicionar recurso para agentes no Microsoft Foundry
-    var agents = builder.AddAgents("agents");
+    var agents = builder.AddFoundryAgentsConnectionString("agents");
     ```
 
    Vamos analisar o código.
 
-   - `builder.AddAgents("agents")`: Isso adiciona a lista de detalhes dos agentes por meio de um recurso personalizado, `AgentResource`. Se você quiser saber mais sobre o recurso personalizado do Aspire, visite [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/).
+   - `builder.AddFoundryAgentsConnectionString("agents")`: Isso adiciona a lista de detalhes dos agentes por meio do método de extensão `AddFoundryAgentsConnectionString()`.
 
 1. No mesmo arquivo, encontre o comentário `// Add backend agent service` e adicione o código logo abaixo dele. Isso define o serviço de agente backend que referencia o recurso `foundry` — todos os detalhes de conexão do Microsoft Foundry são passados para o aplicativo de serviço de agente backend.
 
     ```csharp
     // Adicionar serviço de agente backend
-    var agent = builder.AddProject<MultiAgentWorkshop_Agent>("agent")
-                       .WithReference(foundry);
+    var agent = builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")
+                       .WithReference(foundry)
+                       .WaitFor(foundry);
     ```
 
    Vamos analisar o código.
 
-   - `builder.AddProject<MultiAgentWorkshop_Agent>("agent")`: Isso adiciona o aplicativo de serviço de agente backend como um projeto .NET.
-   - `.WithReference(foundry)`: Isso referencia o recurso foundry criado acima, que passa os detalhes de conexão do Microsoft Foundry para o aplicativo de serviço de agente backend.
+   - `builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")`: Isso adiciona o aplicativo de serviço de agente backend como um projeto .NET.
+   - `.WithReference(foundry)`: Isso referencia o recurso de string de conexão foundry criado acima, que passa os detalhes de conexão do Microsoft Foundry para o aplicativo de serviço de agente backend.
+   - `.WaitFor(foundry)`: Isso mantém a ordem de ativação de dependências para que este recurso de projeto `agent` não seja ativado até que o recurso de conexão `foundry` esteja em execução.
 
 1. No mesmo arquivo, encontre o comentário `// Add frontend web UI` e adicione o código logo abaixo dele. Isso define a interface web frontend que referencia os recursos `agents` e `agent` — os detalhes dos agentes e os detalhes de conexão do backend são passados para o aplicativo de interface web frontend.
 
     ```csharp
     // Adicionar interface web frontend
-    var webUI = builder.AddProject<MultiAgentWorkshop_WebUI>("webui")
+    var webUI = builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")
                        .WithExternalHttpEndpoints()
                        .WithReference(agents)
                        .WithReference(agent)
+                       .WaitFor(agents)
                        .WaitFor(agent);
     ```
 
    Vamos analisar o código.
 
-   - `builder.AddProject<MultiAgentWorkshop_WebUI>("webui")`: Isso adiciona o aplicativo de interface web frontend como um projeto .NET.
+   - `builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")`: Isso adiciona o aplicativo de interface web frontend como um projeto .NET.
    - `.WithExternalHttpEndpoints()`: Isso expõe o aplicativo de interface web frontend para a Internet, tornando-o acessível publicamente.
-   - `.WithReference(agents)`: Isso referencia o recurso de agentes criado acima, que passa a lista de agentes para o aplicativo de interface web frontend.
+   - `.WithReference(agents)`: Isso referencia o recurso de string de conexão de agentes criado acima, que passa a lista de agentes para o aplicativo de interface web frontend.
    - `.WithReference(agent)`: Isso referencia o aplicativo de serviço de agente backend, que passa os detalhes de conexão para o aplicativo de interface web frontend.
+   - `.WaitFor(agents)`: Isso mantém a ordem de ativação de dependências para que este recurso de projeto `webui` não seja ativado até que o recurso de conexão `agents` esteja em execução.
+   - `.WaitFor(agent)`: Isso mantém a ordem de ativação de dependências para que este recurso de projeto `webui` não seja ativado até que o recurso de projeto `agent` esteja em execução.
 
 ## Implementar o padrão handoff no serviço de agente backend
 
@@ -233,32 +214,36 @@ Você trabalha em uma equipe de suporte de TI com agentes &ndash; agente de supo
     ```csharp
     // Criar instância do AzureOpenAIClient com autenticação EntraID
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
+    var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
 
-    var chatClient = new AzureOpenAIClient(new Uri(endpoint), credential)
-                        .GetResponsesClient()
-                        .AsIChatClient(model);
+    var chatClient = projectClient.ProjectOpenAIClient
+                                  .GetResponsesClient()
+                                  .AsIChatClient(deploymentName!);
     ```
 
    Vamos analisar o código.
 
    - `new DefaultAzureCredential(...)`: Isso faz login no Azure sem uma chave de API. Usa os detalhes de login do Azure CLI ou Azure Developer CLI na sua máquina local, e Managed Identity quando o aplicativo é implantado no Azure.
-   - `new AzureOpenAIClient(new Uri(endpoint), credential)`: Isso conecta à instância do Azure OpenAI usando o endpoint e os detalhes de login e o converte em uma instância `IChatClient`.
+   - `new AIProjectClient(endpoint, credential)`: Isso conecta à instância do projeto Microsoft Foundry usando o endpoint e os detalhes de login.
+   - `projectClient.ProjectOpenAIClient.GetResponsesClient().AsIChatClient(deploymentName)`: Isso conecta à instância do Azure OpenAI e a converte em uma instância `IChatClient`.
+
+     Note que o Microsoft Foundry Prompt Agent ainda não oferece suporte ao padrão de orquestração handoff no momento deste workshop. Portanto, os agentes devem ser redefinidos diretamente no aplicativo.
 
 1. No mesmo arquivo, encontre o comentário `// Register all agents passed from Aspire` e adicione o código logo abaixo dele. Isso obtém os detalhes dos agentes do projeto Microsoft Foundry e os registra no contêiner IoC como serviços singleton.
 
     ```csharp
     // Registrar todos os agentes passados pelo Aspire
-    foreach (var agentSettings in agents)
+    foreach (var agentName in agentNames!)
     {
         var instruction = await File.ReadAllTextAsync(
-            Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentSettings.Name}.txt"));
+            Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentName}.txt"));
 
         var agent = new ChatClientAgent(
             chatClient,
             instructions: instruction,
-            name: agentSettings.Name);
+            name: agentName);
 
-        builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
+        builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent);
     }
     ```
 
@@ -267,7 +252,7 @@ Você trabalha em uma equipe de suporte de TI com agentes &ndash; agente de supo
    - Já conhecemos a lista de agentes, mas sabemos apenas seus nomes. Portanto, o código executa o loop `foreach` para cada agente.
    - `await File.ReadAllTextAsync(...)`: Isso importa o arquivo de instrução do agente.
    - `new ChatClientAgent(chatClient, instructions, name)`: Usando as informações de cada agente, a instrução e a instância `IChatClient`, isso cria uma instância de agente.
-   - `builder.Services.AddKeyedSingleton<AIAgent>(name, agent)`: Isso registra a instância do agente como um serviço singleton.
+   - `builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent)`: Isso registra a instância do agente como um serviço singleton.
 
 1. No mesmo arquivo, encontre o comentário `// Build a handoff workflow pattern with the agents registered` e adicione o código logo abaixo dele.
 
@@ -338,7 +323,7 @@ Você trabalha em uma equipe de suporte de TI com agentes &ndash; agente de supo
 
     ```csharp
     // Registrar todos os agentes passados pelo Aspire
-    builder.Services.AddSingleton(agents);
+    builder.Services.AddSingleton(agentNames!);
     ```
 
 1. No mesmo arquivo, encontre o comentário `// Register the backend agent service as an HTTP client` e adicione o código logo abaixo dele. O Aspire já fornece ao aplicativo de interface web frontend os detalhes de conexão para o serviço de agente backend.

@@ -55,22 +55,10 @@
       ...
       // 添加智能体
       "Agents": [
-        {
-          "Name": "triage-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "general-support-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "network-specialist-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "warranty-agent",
-          "Version": "1"
-        }
+        "triage-agent",
+        "general-support-agent",
+        "network-specialist-agent",
+        "warranty-agent"
       ]
       ...
     }
@@ -146,22 +134,10 @@
       ...
       // 添加智能体
       "Agents": [
-        {
-          "Name": "triage-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "general-support-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "network-specialist-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "warranty-agent",
-          "Version": "1"
-        }
+        "triage-agent",
+        "general-support-agent",
+        "network-specialist-agent",
+        "warranty-agent"
       ]
       ...
     }
@@ -171,54 +147,59 @@
 
     ```csharp
     // 添加 Microsoft Foundry 资源
-    var foundry = builder.AddFoundry("foundry");
+    var foundry = builder.AddFoundryConnectionString("foundry");
     ```
 
    让我们分解这段代码。
 
-   - `builder.AddFoundry("foundry")`：这通过自定义资源 `FoundryResource` 添加 Microsoft Foundry 连接详情。如果您想了解更多关于 Aspire 自定义资源的信息，请访问 [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/)。
+   - `builder.AddFoundryConnectionString("foundry")`：这通过扩展方法 `AddFoundryConnectionString()` 添加 Microsoft Foundry 连接字符串。
 
 1. 在同一文件中，找到注释 `// Add resource for agents on Microsoft Foundry`，在其正下方添加代码。这将向引用的应用公开智能体详情列表。
 
     ```csharp
     // 添加 Microsoft Foundry 上的智能体资源
-    var agents = builder.AddAgents("agents");
+    var agents = builder.AddFoundryAgentsConnectionString("agents");
     ```
 
    让我们分解这段代码。
 
-   - `builder.AddAgents("agents")`：这通过自定义资源 `AgentResource` 添加智能体详情列表。如果您想了解更多关于 Aspire 自定义资源的信息，请访问 [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/)。
+   - `builder.AddFoundryAgentsConnectionString("agents")`：这通过扩展方法 `AddFoundryAgentsConnectionString()` 添加智能体详情列表。
 
 1. 在同一文件中，找到注释 `// Add backend agent service`，在其正下方添加代码。这将定义引用 `foundry` 资源的后端智能体服务——所有 Microsoft Foundry 连接详情将传递给后端智能体服务应用。
 
     ```csharp
     // 添加后端智能体服务
-    var agent = builder.AddProject<MultiAgentWorkshop_Agent>("agent")
-                       .WithReference(foundry);
+    var agent = builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")
+                       .WithReference(foundry)
+                       .WaitFor(foundry);
     ```
 
    让我们分解这段代码。
 
-   - `builder.AddProject<MultiAgentWorkshop_Agent>("agent")`：这将后端智能体服务应用作为 .NET 项目添加。
-   - `.WithReference(foundry)`：这引用了上面创建的 foundry 资源，将 Microsoft Foundry 连接详情传递给后端智能体服务应用。
+   - `builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")`：这将后端智能体服务应用作为 .NET 项目添加。
+   - `.WithReference(foundry)`：这引用了上面创建的 foundry 连接字符串资源，将 Microsoft Foundry 连接详情传递给后端智能体服务应用。
+   - `.WaitFor(foundry)`：这保持依赖项激活顺序，使此 `agent` 项目资源在 `foundry` 连接资源启动并运行之前不会被激活。
 
 1. 在同一文件中，找到注释 `// Add frontend web UI`，在其正下方添加代码。这将定义引用 `agents` 和 `agent` 两个资源的前端 Web UI——智能体详情和后端连接详情都将传递给前端 Web UI 应用。
 
     ```csharp
     // 添加前端 Web UI
-    var webUI = builder.AddProject<MultiAgentWorkshop_WebUI>("webui")
+    var webUI = builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")
                        .WithExternalHttpEndpoints()
                        .WithReference(agents)
                        .WithReference(agent)
+                       .WaitFor(agents)
                        .WaitFor(agent);
     ```
 
    让我们分解这段代码。
 
-   - `builder.AddProject<MultiAgentWorkshop_WebUI>("webui")`：这将前端 Web UI 应用作为 .NET 项目添加。
+   - `builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")`：这将前端 Web UI 应用作为 .NET 项目添加。
    - `.WithExternalHttpEndpoints()`：这将前端 Web UI 应用暴露到互联网，使其可公开访问。
-   - `.WithReference(agents)`：这引用了上面创建的 agents 资源，将智能体列表传递给前端 Web UI 应用。
+   - `.WithReference(agents)`：这引用了上面创建的 agents 连接字符串资源，将智能体列表传递给前端 Web UI 应用。
    - `.WithReference(agent)`：这引用了后端智能体服务应用，将连接详情传递给前端 Web UI 应用。
+   - `.WaitFor(agents)`：这保持依赖项激活顺序，使此 `webui` 项目资源在 `agents` 连接资源启动并运行之前不会被激活。
+   - `.WaitFor(agent)`：这保持依赖项激活顺序，使此 `webui` 项目资源在 `agent` 项目资源启动并运行之前不会被激活。
 
 ## 在后端智能体服务中实现交接模式
 
@@ -233,32 +214,36 @@
     ```csharp
     // 使用 EntraID 身份验证创建 AzureOpenAIClient 实例
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
+    var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
 
-    var chatClient = new AzureOpenAIClient(new Uri(endpoint), credential)
-                        .GetResponsesClient()
-                        .AsIChatClient(model);
+    var chatClient = projectClient.ProjectOpenAIClient
+                                  .GetResponsesClient()
+                                  .AsIChatClient(deploymentName!);
     ```
 
    让我们分解这段代码。
 
    - `new DefaultAzureCredential(...)`：这无需 API 密钥即可登录 Azure。在本地机器上使用您的 Azure CLI 登录或 Azure Developer CLI 登录详情，在部署到 Azure 时使用托管标识。
-   - `new AzureOpenAIClient(new Uri(endpoint), credential)`：这使用端点和登录详情连接到 Azure OpenAI 实例，并将其转换为 `IChatClient` 实例。
+   - `new AIProjectClient(endpoint, credential)`：这使用端点和登录详情连接到 Microsoft Foundry 项目实例。
+   - `projectClient.ProjectOpenAIClient.GetResponsesClient().AsIChatClient(deploymentName)`：这连接到 Azure OpenAI 实例，并将其转换为 `IChatClient` 实例。
+
+     请注意，在本工作坊进行时 Microsoft Foundry Prompt Agent 尚不支持交接编排模式。因此，智能体应直接在应用内重新定义。
 
 1. 在同一文件中，找到注释 `// Register all agents passed from Aspire`，在其正下方添加代码。这将从 Microsoft Foundry 项目中拉取智能体详情，并将它们作为单例服务注册到 IoC 容器中。
 
     ```csharp
     // 注册所有从 Aspire 传递的智能体
-    foreach (var agentSettings in agents)
+    foreach (var agentName in agentNames!)
     {
         var instruction = await File.ReadAllTextAsync(
-            Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentSettings.Name}.txt"));
+            Path.Combine(AppContext.BaseDirectory, "Prompts", $"{agentName}.txt"));
 
         var agent = new ChatClientAgent(
             chatClient,
             instructions: instruction,
-            name: agentSettings.Name);
+            name: agentName);
 
-        builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
+        builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent);
     }
     ```
 
@@ -267,7 +252,7 @@
    - 我们已经知道智能体列表，但只知道它们的名称。因此，代码对每个智能体运行 `foreach` 循环。
    - `await File.ReadAllTextAsync(...)`：这导入智能体指令文件。
    - `new ChatClientAgent(chatClient, instructions, name)`：使用每个智能体的信息、指令和 `IChatClient` 实例创建智能体实例。
-   - `builder.Services.AddKeyedSingleton<AIAgent>(name, agent)`：将智能体实例注册为单例服务。
+   - `builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent)`：将智能体实例注册为单例服务。
 
 1. 在同一文件中，找到注释 `// Build a handoff workflow pattern with the agents registered`，在其正下方添加代码。
 
@@ -338,7 +323,7 @@
 
     ```csharp
     // 注册所有从 Aspire 传递的智能体
-    builder.Services.AddSingleton(agents);
+    builder.Services.AddSingleton(agentNames!);
     ```
 
 1. 在同一文件中，找到注释 `// Register the backend agent service as an HTTP client`，在其正下方添加代码。Aspire 已经为前端 Web UI 应用提供了后端智能体服务的连接详情。
