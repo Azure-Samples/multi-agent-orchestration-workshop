@@ -1,4 +1,4 @@
-using Azure.AI.OpenAI;
+using Azure.AI.Projects;
 using Azure.Identity;
 
 using Microsoft.Agents.AI;
@@ -20,13 +20,11 @@ var (endpoint, deploymentName, agentNames) = config.GetAgentDetails("foundry");
 builder.AddServiceDefaults();
 
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
+var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
 
-// For the handoff pattern, use ChatClientAgent instead of Foundry prompt agents.
-// Foundry prompt agents don't support dynamically injected handoff tools at invocation time.
-// ChatClientAgent allows the framework to inject handoff_to_* tools via ChatOptions.Tools.
-var chatClient = new AzureOpenAIClient(new Uri(endpoint!), credential)
-                     .GetResponsesClient()
-                     .AsIChatClient(deploymentName!);
+var chatClient = projectClient.ProjectOpenAIClient
+                              .GetResponsesClient()
+                              .AsIChatClient(deploymentName!);
 
 foreach (var agentName in agentNames!)
 {
