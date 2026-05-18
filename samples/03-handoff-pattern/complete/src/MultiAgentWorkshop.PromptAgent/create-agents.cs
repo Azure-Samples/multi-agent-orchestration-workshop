@@ -6,6 +6,8 @@
 #:package Azure.Identity
 #:package Microsoft.Extensions.Hosting
 
+#:project ../MultiAgentWorkshop.Models/MultiAgentWorkshop.Models.csproj
+
 #:property UserSecretsId=da95cb48-2649-4b62-b1b8-49596530e82e
 
 #pragma warning disable OPENAI001
@@ -18,6 +20,8 @@ using Azure.Identity;
 
 using Microsoft.Extensions.Configuration;
 
+using MultiAgentWorkshop.Models.Configuration;
+
 using OpenAI.Responses;
 
 var config = new ConfigurationBuilder()
@@ -27,9 +31,11 @@ var config = new ConfigurationBuilder()
                  .AddUserSecrets<Program>(optional: true, reloadOnChange: true)
                  .Build();
 
-var endpoint = config["Foundry:Project:Endpoint"] ?? throw new InvalidOperationException("Project endpoint is not configured");
-var model = config["Foundry:Project:Model"] ?? throw new InvalidOperationException("Project model is not configured");
-var agents = config.GetSection("Foundry:Project:Agents").Get<List<string>>() ?? throw new InvalidOperationException("Agents are not configured");
+var foundry = config.GetSection("Foundry").Get<FoundrySettings>() ?? throw new InvalidOperationException("Foundry settings are not configured");
+var project = foundry.Project ?? throw new InvalidOperationException("Foundry project settings are not configured");
+var endpoint = project.Endpoint ?? throw new InvalidOperationException("Project endpoint is not configured");
+var model = project.Model ?? throw new InvalidOperationException("Project model is not configured");
+var agents = project.Agents ?? throw new InvalidOperationException("Agents are not configured");
 
 var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
 var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
