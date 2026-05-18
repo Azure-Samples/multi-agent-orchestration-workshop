@@ -12,6 +12,8 @@
 
 #pragma warning disable OPENAI001
 
+using System.Runtime.CompilerServices;
+
 using Azure.AI.Projects;
 using Azure.AI.Projects.Agents;
 using Azure.Identity;
@@ -21,8 +23,6 @@ using Microsoft.Extensions.Configuration;
 using MultiAgentWorkshop.Models.Configuration;
 
 using OpenAI.Responses;
-
-using System.Runtime.CompilerServices;
 
 var config = new ConfigurationBuilder()
                  .SetBasePath(GetScriptDirectory())

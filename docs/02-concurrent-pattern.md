@@ -55,26 +55,11 @@ You're working for a venture capital firm and analyzing a startup pitch with age
       ...
       // Add agents
       "Agents": [
-        {
-          "Name": "market-analysis-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "technology-feasibility-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "financial-model-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "risk-assessment-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "aggregator-agent",
-          "Version": "1"
-        }
+        "market-analysis-agent",
+        "technology-feasibility-agent",
+        "financial-model-agent",
+        "risk-assessment-agent",
+        "aggregator-agent"
       ]
       ...
     }
@@ -151,26 +136,11 @@ You're working for a venture capital firm and analyzing a startup pitch with age
       ...
       // Add agents
       "Agents": [
-        {
-          "Name": "market-analysis-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "technology-feasibility-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "financial-model-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "risk-assessment-agent",
-          "Version": "1"
-        },
-        {
-          "Name": "aggregator-agent",
-          "Version": "1"
-        }
+        "market-analysis-agent",
+        "technology-feasibility-agent",
+        "financial-model-agent",
+        "risk-assessment-agent",
+        "aggregator-agent"
       ]
       ...
     }
@@ -180,54 +150,59 @@ You're working for a venture capital firm and analyzing a startup pitch with age
 
     ```csharp
     // Add resource for Microsoft Foundry
-    var foundry = builder.AddFoundry("foundry");
+    var foundry = builder.AddFoundryConnectionString("foundry");
     ```
 
    Let's break down the code.
 
-   - `builder.AddFoundry("foundry")`: This adds the Microsoft Foundry connection details through a custom resource, `FoundryResource`. If you want to know more about the Aspire custom resource, visit [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/).
+   - `builder.AddFoundryConnectionString("foundry")`: This adds the Microsoft Foundry connection string through the extension method `AddFoundryConnectionString()`.
 
 1. In the same file, find the comment `// Add resource for agents on Microsoft Foundry` and add the code right underneath it. This exposes the list of agent details to the referencing application.
 
     ```csharp
     // Add resource for agents on Microsoft Foundry
-    var agents = builder.AddAgents("agents");
+    var agents = builder.AddFoundryAgentsConnectionString("agents");
     ```
 
    Let's break down the code.
 
-   - `builder.AddAgents("agents")`: This adds the list of agent details through a custom resource, `AgentResource`. If you want to know more about the Aspire custom resource, visit [Create custom hosting integrations](https://aspire.dev/integrations/custom-integrations/hosting-integrations/).
+   - `builder.AddFoundryAgentsConnectionString("agents")`: This adds the list of agent details through the extension method `AddFoundryAgentsConnectionString()`.
 
 1. In the same file, find the comment `// Add backend agent service` and add the code right underneath it. This defines the backend agent service that references the `foundry` resource — all the Microsoft Foundry connection details are passed to the backend agent service app.
 
     ```csharp
     // Add backend agent service
-    var agent = builder.AddProject<MultiAgentWorkshop_Agent>("agent")
-                       .WithReference(foundry);
+    var agent = builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")
+                       .WithReference(foundry)
+                       .WaitFor(foundry);
     ```
 
    Let's break down the code.
 
-   - `builder.AddProject<MultiAgentWorkshop_Agent>("agent")`: This adds the backend agent service app as a .NET project.
-   - `.WithReference(foundry)`: This references the foundry resource created above, which passes the Microsoft Foundry connection details to the backend agent service app.
+   - `builder.AddProject<Projects.MultiAgentWorkshop_Agent>("agent")`: This adds the backend agent service app as a .NET project.
+   - `.WithReference(foundry)`: This references the foundry connection string resource created above, which passes the Microsoft Foundry connection details to the backend agent service app.
+   - `.WaitFor(foundry)`: This keeps dependency activation order so that this `agent` project resource won't be activated until the `foundry` connection resource is up and running.
 
 1. In the same file, find the comment `// Add frontend web UI` and add the code right underneath it. This defines the frontend web UI that references both the `agents` and `agent` resources — the agent details and backend connection details are both passed to the frontend web UI app.
 
     ```csharp
     // Add frontend web UI
-    var webUI = builder.AddProject<MultiAgentWorkshop_WebUI>("webui")
+    var webUI = builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")
                        .WithExternalHttpEndpoints()
                        .WithReference(agents)
                        .WithReference(agent)
+                       .WaitFor(agents)
                        .WaitFor(agent);
     ```
 
    Let's break down the code.
 
-   - `builder.AddProject<MultiAgentWorkshop_WebUI>("webui")`: This adds the frontend web UI app as a .NET project.
+   - `builder.AddProject<Projects.MultiAgentWorkshop_WebUI>("webui")`: This adds the frontend web UI app as a .NET project.
    - `.WithExternalHttpEndpoints()`: This exposes this frontend web UI app to the Internet, which is publicly accessible.
-   - `.WithReference(agents)`: This references the agent resource created above, which passes the list of agents to the frontend web UI app.
+   - `.WithReference(agents)`: This references the agents connection string resource created above, which passes the list of agents to the frontend web UI app.
    - `.WithReference(agent)`: This references the backend agent service app, which passes the connection details to the frontend web UI app.
+   - `.WaitFor(agents)`: This keeps dependency activation order so that this `webui` project resource won't be activated until the `agents` connection resource is up and running.
+   - `.WaitFor(agent)`: This keeps dependency activation order so that this `webui` project resource won't be activated until the `agent` project resource is up and running.
 
 ## Implement concurrent pattern on backend agent service
 
@@ -242,7 +217,7 @@ You're working for a venture capital firm and analyzing a startup pitch with age
     ```csharp
     // Create AIProjectClient instance with EntraID authentication
     var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
-    var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
+    var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
     ```
 
    Let's break down the code.
@@ -254,38 +229,33 @@ You're working for a venture capital firm and analyzing a startup pitch with age
 
     ```csharp
     // Register all agents passed from Aspire
-    foreach (var agentSettings in agents)
+    foreach (var agentName in agentNames!)
     {
-        var agentReference = new AgentReference(agentSettings.Name, agentSettings.Version);
+        var agentRecord = await projectClient.AgentAdministrationClient
+                                             .GetAgentAsync(agentName);
+        var agent = projectClient.AsAIAgent(agentRecord);
 
-        var agent = projectClient.AsAIAgent(
-            agentReference: agentReference,
-            clientFactory: inner => new AgentRecordShimChatClient(inner)
-        );
-
-        builder.Services.AddKeyedSingleton<AIAgent>(agentSettings.Name, agent);
+        builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent);
     }
     ```
 
    Let's break down the code.
 
    - We already know the list of agents but only know their names. Therefore, the code runs the `foreach` loop for each agent.
-   - `new AgentReference(name, version)`: Using each agent's information, this creates a reference instance.
-   - `projectClient.AsAIAgent(reference, factory)`: This connects to the actual agent using the reference details.
-   - `builder.Services.AddKeyedSingleton<AIAgent>(name, agent)`: This registers the agent instance as a singleton service.
-
-   > **NOTE**: You may notice the `AgentRecordShimChatClient` class. It's a temporary workaround for a version mismatch between the Microsoft Agent Framework and the Microsoft Foundry SDK, which will be removed soon.
+   - `projectClient.AgentAdministrationClient.GetAgentAsync(agentName)`: Using each agent's information, this creates an `ProjectsAgentRecord` instance.
+   - `projectClient.AsAIAgent(agentRecord)`: This connects to the actual agent using the reference details.
+   - `builder.Services.AddKeyedSingleton<AIAgent>(agentName, agent)`: This registers the agent instance as a singleton service.
 
 1. In the same file, find the comment `// Build a concurrent workflow pattern with the agents registered` and add the code right underneath it.
 
     ```csharp
     // Build a concurrent workflow pattern with the agents registered
-    var concurrentAgents = agents.Where(a => a.Name != "aggregator-agent");
-    var aggregatorAgent = agents.SingleOrDefault(a => a.Name == "aggregator-agent");
+    var concurrentAgentNames = agentNames!.Where(name => name != "aggregator-agent");
+    var aggregatorAgentName = agentNames!.SingleOrDefault(name => name == "aggregator-agent");
 
     builder.AddWorkflow("concurrent-analysis", (sp, key) => AgentWorkflowBuilder.BuildConcurrent(
         workflowName: key,
-        agents: [.. concurrentAgents.Select(a => sp.GetRequiredKeyedService<AIAgent>(a.Name))],
+        agents: [.. concurrentAgentNames.Select(name => sp.GetRequiredKeyedService<AIAgent>(name))],
         aggregator: null
     )).AddAsAIAgent("concurrent-analysis");
 
@@ -293,7 +263,7 @@ You're working for a venture capital firm and analyzing a startup pitch with age
         workflowName: key,
         agents: [
             sp.GetRequiredKeyedService<AIAgent>("concurrent-analysis"),
-            sp.GetRequiredKeyedService<AIAgent>(aggregatorAgent!.Name)
+            sp.GetRequiredKeyedService<AIAgent>(aggregatorAgentName!)
         ]
     )).AddAsAIAgent("publisher");
     ```
@@ -301,15 +271,13 @@ You're working for a venture capital firm and analyzing a startup pitch with age
    Let's break down the code.
 
    - `builder.AddWorkflow("concurrent-analysis", ...).AddAsAIAgent("concurrent-analysis")`: This adds the multi-agent workflow as another agent instance named `concurrent-analysis` and registers it as a singleton.
-   - `AgentWorkflowBuilder.BuildConcurrent(...)`: This is the concurrent workflow builder that uses the same name, `concurrent-analysis`.
-
-     Note that it adds multiple agents from the previously registered services declared by the `agents` array.
-
-     Also note that it passes `null` for the aggregator so that we can use the `aggregator-agent` provided by Microsoft Foundry instead.
+   - `AgentWorkflowBuilder.BuildConcurrent(...)`: This is the concurrent workflow builder that uses the same name, `concurrent-analysis`. It adds multiple agents from the previously registered services declared by the `agentNames` array.
+   
+     Note that it passes `null` for the aggregator so that we can use the `aggregator-agent` provided by Microsoft Foundry instead.
    - `builder.AddWorkflow("publisher, ...).AddAsAIAgent("publisher")`: This adds the multi-agent workflow as another agent instance named `publisher` and registers it as a singleton.
    - `AgentWorkflowBuilder.BuildSequential(...)`: This is the sequential workflow builder that uses the same name, `publisher`.
 
-     Note that it adds both the `concurrent-analysis` workflow and the `aggregator-agent` so that the aggregator agent summarizes what each agent has responded with in the concurrent workflow.
+     Note that it adds both the `concurrent-analysis` workflow and the `aggregator-agent` agent so that the aggregator agent summarizes what each agent has responded with in the concurrent workflow.
 
 1. In the same file, find the comment `// Map AGUI to the publisher workflow agent` and add the code right underneath it. The workflow is exposed as an API endpoint at `ag-ui` so that the frontend web UI can communicate with this backend agent service app.
 
@@ -333,7 +301,7 @@ You're working for a venture capital firm and analyzing a startup pitch with age
 
     ```csharp
     // Register all agents passed from Aspire
-    builder.Services.AddSingleton(agents);
+    builder.Services.AddSingleton(agentNames!);
     ```
 
 1. In the same file, find the comment `// Register the backend agent service as an HTTP client` and add the code right underneath it. Aspire already provides the frontend web UI app with the connection details for the backend agent service.
