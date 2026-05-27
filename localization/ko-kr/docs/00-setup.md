@@ -110,6 +110,9 @@
 1. 다음 도구를 머신에 설치합니다.
 
    - [VS Code](https://code.visualstudio.com/download) + [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
+   - [.NET SDK 10+](https://dotnet.microsoft.com/download/dotnet/10.0)
+   - `nvm`을 통해 설치한 최신 LTS 버전의 [node.js](https://nodejs.org/) ([Windows](https://github.com/coreybutler/nvm-windows) 또는 [MacOS/Linux](https://github.com/nvm-sh/nvm))
+   - [PowerShell 7+](https://learn.microsoft.com/powershell/scripting/install/install-powershell)
    - [Docker Desktop](https://docs.docker.com/desktop/) 또는 동등한 도구
    - [GitHub CLI](https://cli.github.com)
    - [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
@@ -122,6 +125,13 @@
     # .NET SDK
     dotnet --list-sdks
 
+    # node.js
+    node --version
+    npm --version
+
+    # PowerShell
+    pwsh --version
+
     # Docker
     docker info
 
@@ -133,6 +143,11 @@
 
     # az CLI
     az --version
+    az extension add --name account
+    az extension add --name authV2
+    az extension add --name containerapp
+    az extension add --name deploy-to-azure
+    az extension add --name subscription
     az bicep version
 
     # Aspire CLI

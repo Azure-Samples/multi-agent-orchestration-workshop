@@ -110,6 +110,9 @@ Si ya tiene una instancia de GitHub Codespaces, omita esta sección y vaya direc
 1. Instale las siguientes herramientas en su máquina.
 
    - [VS Code](https://code.visualstudio.com/download) + [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
+   - [.NET SDK 10+](https://dotnet.microsoft.com/download/dotnet/10.0)
+   - Última versión LTS de [node.js](https://nodejs.org/) a través de `nvm` ([Windows](https://github.com/coreybutler/nvm-windows) o [MacOS/Linux](https://github.com/nvm-sh/nvm))
+   - [PowerShell 7+](https://learn.microsoft.com/powershell/scripting/install/install-powershell)
    - [Docker Desktop](https://docs.docker.com/desktop/) o equivalente
    - [GitHub CLI](https://cli.github.com)
    - [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
@@ -122,6 +125,13 @@ Si ya tiene una instancia de GitHub Codespaces, omita esta sección y vaya direc
     # .NET SDK
     dotnet --list-sdks
 
+    # node.js
+    node --version
+    npm --version
+
+    # PowerShell
+    pwsh --version
+
     # Docker
     docker info
 
@@ -133,6 +143,11 @@ Si ya tiene una instancia de GitHub Codespaces, omita esta sección y vaya direc
 
     # az CLI
     az --version
+    az extension add --name account
+    az extension add --name authV2
+    az extension add --name containerapp
+    az extension add --name deploy-to-azure
+    az extension add --name subscription
     az bicep version
 
     # Aspire CLI

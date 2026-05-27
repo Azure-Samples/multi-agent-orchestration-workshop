@@ -110,6 +110,9 @@ GitHub Codespaces インスタンスを既にお持ちの場合は、このセ�
 1. お使いのマシンに以下のツールをインストールします。
 
    - [VS Code](https://code.visualstudio.com/download) + [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit)
+   - [.NET SDK 10+](https://dotnet.microsoft.com/download/dotnet/10.0)
+   - `nvm` 経由でインストールする最新 LTS バージョンの [node.js](https://nodejs.org/) ([Windows](https://github.com/coreybutler/nvm-windows) または [MacOS/Linux](https://github.com/nvm-sh/nvm))
+   - [PowerShell 7+](https://learn.microsoft.com/powershell/scripting/install/install-powershell)
    - [Docker Desktop](https://docs.docker.com/desktop/) または同等のツール
    - [GitHub CLI](https://cli.github.com)
    - [Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd)
@@ -122,6 +125,13 @@ GitHub Codespaces インスタンスを既にお持ちの場合は、このセ�
     # .NET SDK
     dotnet --list-sdks
 
+    # node.js
+    node --version
+    npm --version
+
+    # PowerShell
+    pwsh --version
+
     # Docker
     docker info
 
@@ -133,6 +143,11 @@ GitHub Codespaces インスタンスを既にお持ちの場合は、このセ�
 
     # az CLI
     az --version
+    az extension add --name account
+    az extension add --name authV2
+    az extension add --name containerapp
+    az extension add --name deploy-to-azure
+    az extension add --name subscription
     az bicep version
 
     # Aspire CLI
