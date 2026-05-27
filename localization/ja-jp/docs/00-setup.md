@@ -148,6 +148,7 @@ GitHub Codespaces インスタンスを既にお持ちの場合は、このセ�
     az extension add --name containerapp
     az extension add --name deploy-to-azure
     az extension add --name subscription
+    az bicep install
     az bicep version
 
     # Aspire CLI

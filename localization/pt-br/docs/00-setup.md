@@ -148,6 +148,7 @@ Se você já tem uma instância do GitHub Codespaces, pule esta seção e vá di
     az extension add --name containerapp
     az extension add --name deploy-to-azure
     az extension add --name subscription
+    az bicep install
     az bicep version
 
     # Aspire CLI
@@ -230,7 +231,7 @@ Se você já tem uma instância do GitHub Codespaces, pule esta seção e vá di
     # Azure Developer CLI
     azd auth login --check-status
 
-    # Azure Login
+    # Azure CLI
     az account show
     ```
 

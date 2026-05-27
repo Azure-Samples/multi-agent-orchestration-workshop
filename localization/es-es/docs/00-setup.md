@@ -148,6 +148,7 @@ Si ya tiene una instancia de GitHub Codespaces, omita esta sección y vaya direc
     az extension add --name containerapp
     az extension add --name deploy-to-azure
     az extension add --name subscription
+    az bicep install
     az bicep version
 
     # Aspire CLI
@@ -227,10 +228,10 @@ Si ya tiene una instancia de GitHub Codespaces, omita esta sección y vaya direc
    Una vez que haya iniciado sesión, ejecute el siguiente comando para verificar el estado de inicio de sesión.
 
     ```bash
-    # Azure Develper CLI
+    # Azure Developer CLI
     azd auth login --check-status
 
-    # Azure Login
+    # Azure CLI
     az account show
     ```
 

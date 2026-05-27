@@ -228,10 +228,10 @@ If you already have a GitHub Codespaces instance, skip this section and go direc
    Once logged in, run the following command to verify the login status.
 
     ```bash
-    # Azure Develper CLI
+    # Azure Developer CLI
     azd auth login --check-status
 
-    # Azure Login
+    # Azure CLI
     az account show
     ```
 
