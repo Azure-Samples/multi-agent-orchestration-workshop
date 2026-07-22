@@ -37,7 +37,11 @@ var endpoint = project.Endpoint ?? throw new InvalidOperationException("Project 
 var model = project.Model ?? throw new InvalidOperationException("Project model is not configured");
 var agents = project.Agents ?? throw new InvalidOperationException("Agents are not configured");
 
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
+var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions()
+{
+    TenantId = config["AZURE_TENANT_ID"],
+    ExcludeManagedIdentityCredential = true
+});
 var projectClient = new AIProjectClient(endpoint: new Uri(endpoint), tokenProvider: credential);
 var agentClient = projectClient.AgentAdministrationClient;
 

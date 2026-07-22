@@ -20,7 +20,11 @@ var (endpoint, deploymentName, agentNames) = config.GetAgentDetails("foundry");
 
 builder.AddServiceDefaults();
 
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
+var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions()
+{
+    TenantId = config["AZURE_TENANT_ID"],
+    ExcludeManagedIdentityCredential = builder.Environment.IsDevelopment()
+});
 var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
 foreach (var agentName in agentNames!)
 {
@@ -46,7 +50,7 @@ builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
 builder.Services.AddDevUI();
 
-builder.Services.AddAGUI();
+builder.Services.AddAGUIServer();
 
 var app = builder.Build();
 
@@ -55,7 +59,7 @@ app.MapDefaultEndpoints();
 app.MapOpenAIResponses();
 app.MapOpenAIConversations();
 
-app.MapAGUI(
+app.MapAGUIServer(
     pattern: "ag-ui",
     aiAgent: app.Services.GetRequiredKeyedService<AIAgent>("publisher")
 );

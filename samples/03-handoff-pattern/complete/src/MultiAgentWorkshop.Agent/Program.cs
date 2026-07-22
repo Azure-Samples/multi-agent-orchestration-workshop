@@ -19,7 +19,11 @@ var (endpoint, deploymentName, agentNames) = config.GetAgentDetails("foundry");
 
 builder.AddServiceDefaults();
 
-var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { TenantId = config["AZURE_TENANT_ID"] });
+var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions()
+{
+    TenantId = config["AZURE_TENANT_ID"],
+    ExcludeManagedIdentityCredential = builder.Environment.IsDevelopment()
+});
 var projectClient = new AIProjectClient(endpoint: new Uri(endpoint!), tokenProvider: credential);
 
 var chatClient = projectClient.ProjectOpenAIClient
@@ -42,19 +46,19 @@ foreach (var agentName in agentNames!)
 builder.AddWorkflow("publisher", (sp, key) =>
 {
     var triage = sp.GetRequiredKeyedService<AIAgent>("triage-agent");
-    var academicSupport = sp.GetRequiredKeyedService<AIAgent>("academic-support-agent");
-    var fieldTrainingSafety = sp.GetRequiredKeyedService<AIAgent>("field-training-safety-agent");
-    var careerPathway = sp.GetRequiredKeyedService<AIAgent>("career-pathway-agent");
+    var academicCurriculum = sp.GetRequiredKeyedService<AIAgent>("academic-curriculum-agent");
+    var studentWellbeing = sp.GetRequiredKeyedService<AIAgent>("student-wellbeing-agent");
+    var collegeCareer = sp.GetRequiredKeyedService<AIAgent>("college-career-agent");
 
-    var specialists = new[] { academicSupport, fieldTrainingSafety, careerPathway };
+    var specialists = new[] { academicCurriculum, studentWellbeing, collegeCareer };
 
     var workflow = AgentWorkflowBuilder.CreateHandoffBuilderWith(triage)
         // Triage can hand off to any specialist
         .WithHandoffs(triage, specialists)
         // Each specialist can hand off to other specialists
-        .WithHandoffs(academicSupport, [fieldTrainingSafety, careerPathway])
-        .WithHandoffs(fieldTrainingSafety, [academicSupport, careerPathway])
-        .WithHandoffs(careerPathway, [academicSupport, fieldTrainingSafety])
+        .WithHandoffs(academicCurriculum, [studentWellbeing, collegeCareer])
+        .WithHandoffs(studentWellbeing, [academicCurriculum, collegeCareer])
+        .WithHandoffs(collegeCareer, [academicCurriculum, studentWellbeing])
         // All specialists hand back to triage
         .WithHandoffs(specialists, triage, "Hand back to triage when the issue is resolved or needs further routing")
         .Build();
@@ -70,7 +74,7 @@ builder.Services.AddOpenAIResponses();
 builder.Services.AddOpenAIConversations();
 builder.Services.AddDevUI();
 
-builder.Services.AddAGUI();
+builder.Services.AddAGUIServer();
 
 var app = builder.Build();
 
@@ -79,7 +83,7 @@ app.MapDefaultEndpoints();
 app.MapOpenAIResponses();
 app.MapOpenAIConversations();
 
-app.MapAGUI(
+app.MapAGUIServer(
     pattern: "ag-ui",
     aiAgent: app.Services.GetRequiredKeyedService<AIAgent>("publisher")
                          .CreateFixedAgent()
